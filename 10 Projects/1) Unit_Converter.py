@@ -5,7 +5,7 @@ base_units = [
     "Mile", "Kilometer", "Meter", "Centimeter", "Milimeter", 
     "Year", "Month", "Week", "Day", "Hour", "Minute", "Second"
 ]
-
+sg.theme('DarkTeal')
 layout = [
     [
         sg.Text("Unit:", pad=((5,5),0)), 
@@ -14,13 +14,16 @@ layout = [
         sg.Combo(values = base_units, pad=0, enable_events=True, readonly=True, size=(12,5), key="-UNIT LIST 2-")
     ],
     [
-        sg.Input(key="-INPUT-", pad=(5,(15,4),5))
+        sg.Text("Input: ", key="-INPUT TEXT-", pad=(5,(15,4),5))
+    ],
+    [
+        sg.Input(key="-INPUT-", pad=(5,(0,4),5))
     ],
     [
         sg.Text("Output: ", key="-OUTPUT TEXT-")
     ],
     [
-        sg.InputText("", use_readonly_for_disable = True, disabled=True, key="-OUTPUT-", pad=(5,(0,4),5))
+        sg.InputText("", use_readonly_for_disable = True, disabled_readonly_background_color = '#bc4873', disabled=True, key="-OUTPUT-", pad=(5,(0,4),5))
     ],
     [
         sg.Button("Convert", key="-CONVERT-", pad=((5,5),3))
@@ -149,10 +152,10 @@ while True:
                 window["-OUTPUT-"].update(str(output))
             #Milligram to..
             if values["-UNIT LIST 1-"] == "Milligram" and values["-UNIT LIST 2-"] == "tonne":
-                output = round(float(inputValue)/1e-9,2)
+                output = round(float(inputValue)/1e+9,2)
                 window["-OUTPUT-"].update(str(output))
             if values["-UNIT LIST 1-"] == "Milligram" and values["-UNIT LIST 2-"] == "Kilogram":
-                output = round(float(inputValue)/1e-6,2)
+                output = round(float(inputValue)/1e+6,2)
                 window["-OUTPUT-"].update(str(output))
             if values["-UNIT LIST 1-"] == "Milligram" and values["-UNIT LIST 2-"] == "Pound":
                 output = round(float(inputValue)/453592,2)
@@ -168,7 +171,7 @@ while True:
                 output = round(float(inputValue)/1e+12,2)
                 window["-OUTPUT-"].update(str(output))
             if values["-UNIT LIST 1-"] == "Microgram" and values["-UNIT LIST 2-"] == "Kilogram":
-                output = round(float(inputValue)/1e-9,2)
+                output = round(float(inputValue)/1e+9,2)
                 window["-OUTPUT-"].update(str(output))
             if values["-UNIT LIST 1-"] == "Microgram" and values["-UNIT LIST 2-"] == "Pound":
                 output = round(float(inputValue)/4.536e+8,2)
