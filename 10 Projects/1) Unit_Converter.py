@@ -384,7 +384,7 @@ while True:
                 window["-OUTPUT-"].update(str(output))
             
 
-        else: print("Please enter a number.")
+        else: window["-OUTPUT-"].update("Please Enter Numbers...")
         
 
 window.close()
