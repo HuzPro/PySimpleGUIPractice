@@ -9,21 +9,20 @@ smileys = [
         "other",[":3"]
     ]
 smiley_events = smileys[1] + smileys[3] + smileys[5]
-
-def makeWindow():
-    sg.theme("DarkGreen4")
-    menuLayout = [
+menuLayout = [
         ["File",["Open", "Open New Window","Save As","Save","---","Exit"]],
-        ["Tools",["Word Count"]],
+        ["Tools",["Word Count", "Theme     ", ["Dark2","DarkGreen3","DarkBlue6","HotDogStand","DarkTeal10","Random"]]],
         ["Add",smileys],
-    ]
+]
 
+def makeWindow(theme):
+    sg.theme(theme)
     layout = [
         [sg.Menu(menuLayout)],
         [sg.Text("Untitled", k="-DOC NAME-")],
-        [sg.Multiline( size=(160,35), k="-TEXT BOX-")],
+        [sg.Multiline( size=(116,28), k="-TEXT BOX-", expand_x=True,expand_y=True)],
     ]
-    return sg.Window("Text Editor", layout)
+    return sg.Window("Text Editor", layout, resizable=True)
 
 def saveAs():
     filePath = sg.popup_get_file("Save as", no_window=True, keep_on_top=True, modal=True, save_as=True) + ".txt"
@@ -31,7 +30,7 @@ def saveAs():
     file.write_text(values["-TEXT BOX-"])
     window["-DOC NAME-"].update(Path(filePath).stem)
 
-window = makeWindow()
+window = makeWindow("DarkAmber")
 
 while True:
     event, values = window.read()
@@ -51,7 +50,7 @@ while True:
 
     if event == "Save":
         if os.path.exists(savePath):
-            file = Path(filePath)
+            file = Path(savePath)
             file.write_text(values["-TEXT BOX-"])
             window["-DOC NAME-"].update(Path(filePath).stem)
         else: 
@@ -60,7 +59,7 @@ while True:
     if event == "Exit":
         break
     if event == "Open New Window":
-        window = makeWindow()
+        window = makeWindow("random")
     
     if event == "Word Count":
         fullText = values["-TEXT BOX-"]
@@ -70,7 +69,10 @@ while True:
         if charCount == 0:
             wordCount = 0    
         sg.popup(f"Words: {wordCount}.\nCharacters: {charCount}.")
-
+    
+    if event in menuLayout[1][1][2]:
+        window.close()
+        window = makeWindow(event)
     if event in smiley_events:
         fullText = values["-TEXT BOX-"]
         newText = fullText + " " + event
