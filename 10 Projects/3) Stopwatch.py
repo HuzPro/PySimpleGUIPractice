@@ -17,6 +17,7 @@ layout = [
         sg.Button("Lap", border_width = 0, k="-LAP-")
 
     ],
+    [sg.pin(sg.Column([[]],k="-LAPS-",vertical_scroll_only=True,size_subsample_height=10))],
     [sg.VPush()],
     [sg.VPush()],
     [sg.VPush()],
@@ -24,10 +25,12 @@ layout = [
 
 def displayTime(startTime):
     APTime = round(time() - startTime, 2)
-    window["-BP TIME-"].update(round(APTime))
+    BPTime = math.trunc(APTime)
+    window["-BP TIME-"].update(BPTime)
     APTime = round(100*(APTime - math.trunc(APTime)))
-    window["-AP TIME-"].update(str(APTime).zfill(2))
-
+    APTime = str(APTime).zfill(2)
+    window["-AP TIME-"].update(APTime)
+    return APTime, BPTime
 
 window = sg.Window(
     "Stopwatch", 
@@ -41,9 +44,10 @@ window = sg.Window(
 startTime = 0
 timeBuffer = 0
 active = False
-
+lapCount = 1
+apTime, bpTime = 00, 0
 while True:
-    event, values = window.read(timeout = 1)
+    event, values = window.read(timeout = 10)
     if event == sg.WIN_CLOSED or event == "-CLOSE-":
         break
 
@@ -54,9 +58,12 @@ while True:
             window["-BP TIME-"].update("0")
             window["-START RESET-"].update("Start")
             window["-STOP RESUME-"].update("Stop")
+            window["-LAPS-"].update(visible=False)
+            apTime, bpTime = 00, 0
             startTime = 0
-
+            lapCount = 1
         else:#Start
+            window["-LAPS-"].update(visible=True)
             startTime = time()
             active = True
             window["-START RESET-"].update("Reset")
@@ -75,7 +82,10 @@ while True:
                 window["-STOP RESUME-"].update("Stop")
 
     if active:
-            displayTime(startTime)
-        
+            apTime, bpTime = displayTime(startTime)
+    if event == "-LAP-":
+        window.extend_layout(window["-LAPS-"],
+        [[sg.Text(lapCount),sg.VSeparator(),sg.Text(str(bpTime)+":"+str(apTime))]])
+        lapCount+=1
 
 window.close()
