@@ -2,6 +2,8 @@ from asyncore import read
 from tkinter import font
 import PySimpleGUI as sg
 
+#used https://user-images.githubusercontent.com/46163555/71361827-2a01b880-2562-11ea-9af8-2c264c02c3e8.jpg for themes (It's an image with all the themes)
+
 menu_def =  ["View", ["Theme     ", ["Dark2","DarkGreen3","DarkBlue6","HotDogStand","DarkTeal10","Random"]]]
 
 
