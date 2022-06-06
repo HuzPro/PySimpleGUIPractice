@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 from pathlib import Path
 import os
 
+savePath = ""
 smileys = [
         "happy",[":)",":D","<3"],
         "sad",[":(","D:","T_T","T-T","T.T"],
@@ -75,4 +76,5 @@ while True:
         newText = fullText + " " + event
         values["-TEXT BOX-"] = newText
         window["-TEXT BOX-"].update(newText)
+
 window.close()
