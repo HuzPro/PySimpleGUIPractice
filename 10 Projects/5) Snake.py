@@ -1,4 +1,3 @@
-from lib2to3.pgen2 import literals
 from time import time
 import PySimpleGUI as sg
 from random import randint
