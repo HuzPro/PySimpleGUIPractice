@@ -1,55 +1,60 @@
+from lib2to3.pgen2 import literals
 from time import time
 import PySimpleGUI as sg
 from random import randint
 
-#Game Functions
-def positionToPixel(cell):
-    tl = cell[0]*cellSize, cell[1]*cellSize
-    br = tl[0]+cellSize, tl[1]+cellSize
-    return tl, br
+menuLayout = [
+    [sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"))],
+    [sg.Button("Options", k="-OPTIONS BUTTON-")],
+    [sg.Text("Snake Speed:")],
+    [sg.Slider(range=(1,100), default_value=25)],
+    [sg.Button("Exit", k="-EXIT BUTTON-")]
+]
 
-def newApplePosition():
-    applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
-    while applePosition in snakeBody:
-        applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
-    return applePosition
-
-
-#Game constants
-
-fieldSize = 800
-cellNum = 100
-cellSize = fieldSize/cellNum
-
-#Snake
-snakeBody = [(10,10),(9,10),(8,10)]
-snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
-direction = snakeDirection["up"]
-
-#Apple
-
-global applePosition
-applePosition = newApplePosition()
-
-appleEaten = False
-
-feild = sg.Graph(
-    canvas_size=(fieldSize,fieldSize),
-    graph_bottom_left=(0,0),
-    graph_top_right=(fieldSize,fieldSize),
-    background_color="#212F3C",
-)
-
-layout1 = [[feild], [sg.Button("Exit", k="-EXIT GAME-")]]
-def playGame():
+def makeGameWindow():
     startTime = time()
-    print("Game started")
-    window1 = sg.Window("Snake", layout1, return_keyboard_events=True)
+
+    #Game constants
+    fieldSize = 800
+    cellNum = 20
+    cellSize = fieldSize/cellNum
+
+    #Snake
+    snakeBody = [(10,10),(9,10),(8,10), (7,10)]
+    snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
+    direction = snakeDirection["up"]
+
+    #Game Functions
+    def positionToPixel(cell):
+        tl = cell[0]*cellSize, cell[1]*cellSize
+        br = tl[0]+cellSize, tl[1]+cellSize
+        return tl, br
+
+    def newApplePosition():
+        applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
+        while applePosition in snakeBody:
+            applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
+        return applePosition
+
+    #Apple
+    global applePosition
+    applePosition = newApplePosition()
+    appleEaten = False
+
+    #GameMap
+    feild = sg.Graph(
+        canvas_size=(fieldSize,fieldSize),
+        graph_bottom_left=(0,0),
+        graph_top_right=(fieldSize,fieldSize),
+        background_color="#212F3C",
+    )
+    layout1 = [[feild], [sg.Button("Exit", k="-EXIT GAME-")]]
+    window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True)
     while True:
         event, values = window1.read(timeout=1)
         if event == "-EXIT GAME-":
             break
-
+            
         if event == "Left:37":
             if direction != snakeDirection["right"]:
                 direction = snakeDirection["left"]
@@ -64,9 +69,8 @@ def playGame():
                 direction = snakeDirection["down"]
 
         timeSinceStart = time() - startTime
-        if timeSinceStart >= 0.1:
+        if timeSinceStart >= 0.25:
             startTime = time()
-
             #SnakeEatsApple
             if snakeBody[0] == applePosition:
                 applePosition = newApplePosition()
@@ -75,58 +79,72 @@ def playGame():
             #SnakePositionUpdate
             newHead = (snakeBody[0][0]+ direction[0], snakeBody[0][1]+ direction[1])
             snakeBody.insert(0, newHead)
+            
             if not appleEaten:
                 snakeBody.pop()
             appleEaten = False
 
             #DeathCheck
-            if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:]:
+            if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:-2]:
                 break
-                    
+             
 
-
-            feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C")
-        
+            #feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C",) #drawing the background
+                
             tl, br = positionToPixel(applePosition)
-            feild.DrawRectangle(   tl,         br  ,    "#E11916")
+            feild.DrawRectangle(   tl,         br  ,    "#E11916", line_width=0)
             #DrawDaSnake
             for index, part in enumerate(snakeBody):
                 tl, br = positionToPixel(part)
-                color = "#0B5345" if index == 0 else "#229954"
-                feild.DrawRectangle(tl, br, color)
+                if index == len(snakeBody)-1:
+                    color = "#212F3C"
+                    #feild.DrawRectangle(tl, br, color,line_width=0)
+                    xDelete , yDelete = 0, 0                                        #Comment out this part and uncomment out the line above this to make the code work normally. This is a work in progress alternate.
+                    xDelete , yDelete = tl
+                    xDelete, yDelete = xDelete+(cellSize/2), yDelete-(cellSize/2)
+                    figure = feild.get_figures_at_location((xDelete,yDelete))
+                    feild.delete_figure(figure)
+                elif index != -1 and index != 0:
+                    color = "#229954"
+                    feild.DrawRectangle(tl, br, color, line_width=0)
+                elif index == 0:
+                    color = "#0B5345"
+                    feild.DrawRectangle(tl, br, color, line_width=0)
+                    
+                
 
-        feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C")
-        feild.draw_text("GAME OVER", color="red", location=(fieldSize/2,fieldSize/2))
-        event, values = window1.read()
-        if event == "-EXIT GAME-":
-            window1.close()
+    feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C")
+    feild.draw_text("GAME OVER", color="red", location=(fieldSize/2,fieldSize/2))
+    event, values = window1.read()
+    if event == "-EXIT GAME-":
+        window1.close()
+        
+
     
-    sg.theme("random")
-    
-    
 
+window2 = sg.Window("Menu", menuLayout)
+gameRunning = False
+#window1 = sg.Window("Snake", layout1, return_keyboard_events=True)
 
-
-layout2 = [
-    [sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"))],
-    [sg.Button("Options", k="-OPTIONS BUTTON-")],
-    [sg.Button("Exit", k="-EXIT BUTTON-")]
-]
-
-window2 = sg.Window("Menu", layout2)
 
 while True:
+
     event2, values2 = window2.read()
-    if event2 == sg.WIN_CLOSED:
+    if event2 == sg.WIN_CLOSED or event2 == "-EXIT BUTTON-":
         break
 
-    if event2 == "-PLAY BUTTON-":
-        playGame()
-    
     if event2 == "-OPTIONS BUTTON-":
-        print("You have no options >:)")
+        print("THERE ARE NO OPTIONS LMAAOOO")
+    
+    if event2 == "-PLAY BUTTON-" and not gameRunning:
+        window2.hide()
+        gameRunning = True
+        makeGameWindow()
+        window2.un_hide()
+        gameRunning = False
+        
+        
+        
 
-    if event2 == "-EXIT BUTTON-":
-        break
 
 window2.close()
