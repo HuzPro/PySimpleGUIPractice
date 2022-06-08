@@ -1,12 +1,14 @@
 from time import time
+from tkinter import Button
 import PySimpleGUI as sg
 from random import randint
 
 menuLayout = [
     [sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"))],
     [sg.Button("Options", k="-OPTIONS BUTTON-")],
-    [sg.Text("Snake Speed:")],
-    [sg.Slider(range=(1,100), default_value=25)],
+    [sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-")],
+    [sg.Slider(k="-SIZE SLIDER-",range=(1,100), default_value=25, orientation="h", enable_events=True, visible=False, )],
+    [sg.Button("Back", k="-BACK BUTTON-", visible=False)],
     [sg.Button("Exit", k="-EXIT BUTTON-")]
 ]
 
@@ -46,11 +48,12 @@ def makeGameWindow():
         graph_bottom_left=(0,0),
         graph_top_right=(fieldSize,fieldSize),
         background_color="#212F3C",
+        enable_events=True
     )
     layout1 = [[feild], [sg.Button("Exit", k="-EXIT GAME-")]]
     window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True)
     while True:
-        event, values = window1.read(timeout=1)
+        event, values = window1.read(timeout=0.5)
         if event == "-EXIT GAME-":
             break
             
@@ -93,34 +96,34 @@ def makeGameWindow():
             tl, br = positionToPixel(applePosition)
             feild.DrawRectangle(   tl,         br  ,    "#E11916", line_width=0)
             #DrawDaSnake
-            tail, body, head = 0, 0, 0
-            if head != 0: feild.delete_figure(head)
-            if tail != 0: feild.delete_figure(tail)
+            #tail, body, head = 0, 0, 0
+            #for index, part in enumerate(snakeBody):
+            #    if index == len(snakeBody)-1:
+            #        if tail != 0: feild.DeleteFigure(tail)
+            #    elif index != -1 and index != 0:
+            #        if body != 0: feild.DeleteFigure(body)
+            #    elif index == 0:
+            #        if head != 0: feild.DeleteFigure(head)
             for index, part in enumerate(snakeBody):
-                
-                
-                
                 tl, br = positionToPixel(part)
                 if index == len(snakeBody)-1:
-                    #color = "#212F3C"
+                    color = "#212F3C"
+                    feild.DrawRectangle(tl, br, color,line_width=0)
+
+                    #color = "#229954"
                     #feild.DrawRectangle(tl, br, color,line_width=0)
-                    color = "#229954"
-                    
-                    tail = feild.DrawRectangle(tl, br, color,line_width=0)
                     #xDelete , yDelete = 0, 0                                        #Comment out this part and uncomment out the line above this to make the code work normally. This is a work in progress alternate.
                     #xDelete , yDelete = tl
                     #xDelete, yDelete = xDelete+(cellSize/2), yDelete-(cellSize/2)
                     #figure = feild.get_figures_at_location((xDelete,yDelete))
-                    
+
                 elif index != -1 and index != 0:
+                    #if body != 0: feild.delete_figure(body)
                     color = "#229954"
-                    if body != 0: feild.delete_figure(body)
-                    body = feild.DrawRectangle(tl, br, color, line_width=0)
-                    
+                    feild.DrawRectangle(tl, br, color, line_width=0)
                 elif index == 0:
                     color = "#0B5345"
-                    
-                    head = feild.DrawRectangle(tl, br, color, line_width=0)
+                    feild.DrawRectangle(tl, br, color, line_width=0)
                     
                     
                 
@@ -146,7 +149,12 @@ while True:
         break
 
     if event2 == "-OPTIONS BUTTON-":
-        print("THERE ARE NO OPTIONS LMAAOOO")
+        window2.find_element("-PLAY BUTTON-").Update(visible=False)
+        window2.find_element("-OPTIONS BUTTON-").Update(visible=False)
+        window2.find_element("-EXIT BUTTON-").Update(visible=False)
+        window2.find_element("-SLIDER TEXT-").Update(visible=True)
+        window2.find_element("-SIZE SLIDER-").Update(visible=True)
+        window2.find_element("-BACK BUTTON-").Update(visible=True)
     
     if event2 == "-PLAY BUTTON-" and not gameRunning:
         window2.hide()
