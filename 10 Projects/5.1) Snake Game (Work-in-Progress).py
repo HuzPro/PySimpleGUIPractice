@@ -94,10 +94,12 @@ def makeGameWindow():
             feild.DrawRectangle(   tl,         br  ,    "#E11916", line_width=0)
             #DrawDaSnake
             tail, body, head = 0, 0, 0
+            if head != 0: feild.delete_figure(head)
+            if tail != 0: feild.delete_figure(tail)
             for index, part in enumerate(snakeBody):
-                if tail != 0: feild.delete_figure(tail)
-                if body != 0: feild.delete_figure(body)
-                if head != 0: feild.delete_figure(head)
+                
+                
+                
                 tl, br = positionToPixel(part)
                 if index == len(snakeBody)-1:
                     #color = "#212F3C"
@@ -112,7 +114,7 @@ def makeGameWindow():
                     
                 elif index != -1 and index != 0:
                     color = "#229954"
-                    
+                    if body != 0: feild.delete_figure(body)
                     body = feild.DrawRectangle(tl, br, color, line_width=0)
                     
                 elif index == 0:
