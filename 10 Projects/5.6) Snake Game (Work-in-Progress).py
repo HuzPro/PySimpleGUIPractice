@@ -14,7 +14,11 @@ menuLayout = [
     [sg.pin(sg.Button("Options", k="-OPTIONS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=35, orientation="h", enable_events=True, visible=False, size=(128,16)))],
-    [sg.pin(sg.Text("Snake Color:", visible=False, k="-COLOR TEXT-"))]+[sg.pin(sg.Input(default_text="#229954", size=(8,1),visible=False,k="-COLOR PICKER TEXTBOX-",))]+[sg.pin(sg.Button(k="-COLOR PICKER-", visible=False,target="-COLOR PICKER TEXTBOX-",))],
+
+    [sg.pin(sg.Text("Snake Color:", visible=False, k="-COLOR TEXT-"))]+
+    [sg.pin(sg.Input(default_text="#229954", size=(8,1),visible=False, enable_events=True,k="-COLOR PICKER TEXTBOX-",))]+
+    [sg.pin(sg.ColorChooserButton("",s=(4,1),button_color="#229954", visible = False, k="-COLOR PICKER-", target=("-COLOR PICKER TEXTBOX-"),))],
+
     [sg.pin(sg.Button("Back", k="-BACK BUTTON-", visible=False, use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.VPush()],
@@ -29,14 +33,16 @@ def hex_to_rgb(hex):
      hlen = len(hex)
      return tuple(int(hex[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3))
 
-def adjust_color_lightness(r, g, b, factor):
+def adjust_color_lightness(r, g, b, factor=0.3):
     h, l, s = rgb2hls(r / 255.0, g / 255.0, b / 255.0)
     l = max(min(l * factor, 1.0), 0.0)
     r, g, b = hls2rgb(h, l, s)
     return rgb2hex(int(r * 255), int(g * 255), int(b * 255))
 
-def darken_color(r, g, b, factor=0.1):
+def darken_color(r, g, b, factor=0.3):
     return adjust_color_lightness(r, g, b, 1 - factor)
+
+
 
 def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
     startTime = time()
@@ -189,6 +195,7 @@ while True:
         window2.find_element("-EXIT BUTTON-").Update(visible=False)
         window2.find_element("-COLOR TEXT-").Update(visible=True)
         window2.find_element("-COLOR PICKER TEXTBOX-").Update(visible=True)
+        window2.find_element("-COLOR PICKER-").Update(visible=True)
         window2.find_element("-SLIDER TEXT-").Update(visible=True)
         window2.find_element("-SPEED SLIDER-").Update(visible=True)
         window2.find_element("-BACK BUTTON-").Update(visible=True)
@@ -197,14 +204,26 @@ while True:
             event2, values2 = window2.read()
             if event2 == "-SPEED SLIDER-":
                 snakeSpeed = (100-((values2["-SPEED SLIDER-"])-1))/100
-                #100-99 = 1/100 = 0.01
-                #100-1 = 99/100 = 0.99
+            if event2 == "-COLOR PICKER TEXTBOX-":
+                
+                factor = 0.75
+                snkBColor = values2["-COLOR PICKER TEXTBOX-"]
+                rr, gg, bb = hex_to_rgb(values2["-COLOR PICKER TEXTBOX-"])
+                h, l, s = rgb2hls(rr / 255.0, gg / 255.0, bb / 255.0)
+                l = max(min(l * factor, 1.0), 0.0)
+                r, g, b = hls2rgb(h, l, s)
+                tempHex = rgb2hex(int(r * 255), int(g * 255), int(b * 255))
+                print(str(tempHex))
+                snkHColor = tempHex
+                window2["-COLOR PICKER-"].update(button_color=snkBColor)
+
         else: 
             window2.find_element("-PLAY BUTTON-").Update(visible=True)
             window2.find_element("-OPTIONS BUTTON-").Update(visible=True)
             window2.find_element("-EXIT BUTTON-").Update(visible=True)
             window2.find_element("-COLOR TEXT-").Update(visible=False)
             window2.find_element("-COLOR PICKER TEXTBOX-").Update(visible=False)
+            window2.find_element("-COLOR PICKER-").Update(visible=False)
             window2.find_element("-SLIDER TEXT-").Update(visible=False)
             window2.find_element("-SPEED SLIDER-").Update(visible=False)
             window2.find_element("-BACK BUTTON-").Update(visible=False)
