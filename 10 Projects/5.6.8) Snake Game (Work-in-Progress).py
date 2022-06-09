@@ -1,4 +1,3 @@
-from pickle import TRUE
 from time import time
 import PySimpleGUI as sg
 from random import randint
@@ -6,14 +5,16 @@ import numpy as np
 from colormap import rgb2hex, rgb2hls, hls2rgb
 
 sg.theme("DarkGreen4")
-
+gameCredits = "Creative Director - ME HAHAHAHAHAHA\nProduction Director - ME HAHAHAHAHAHA\nArt Director - ME HAHAHAHAHAHA\nTechnical Director - ME HAHAHAHAHAHA\nSponsor - ME HAHAHAHAHAHA"
 menuLayout = [
+    [sg.VPush()],
     [sg.VPush()],
     [sg.VPush()],
     [sg.pin(sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"), use_ttk_buttons=True, focus=False, size=(16,1)))],            #Menu
     [sg.pin(sg.Button("Options", k="-OPTIONS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
+    [sg.pin(sg.Button("Credits", k="-CREDITS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
-
+    [sg.pin(sg.Text(gameCredits, visible=False, k="-CREDITS TEXT-"))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=35, orientation="h", enable_events=True, visible=False, size=(128,16)))],
 
@@ -21,6 +22,7 @@ menuLayout = [
     [sg.pin(sg.Input(default_text="#229954", size=(8,1),visible=False, enable_events=True,k="-COLOR PICKER TEXTBOX-",))]+
     [sg.pin(sg.ColorChooserButton("",s=(4,1),button_color="#229954", visible = False, k="-COLOR PICKER-", target=("-COLOR PICKER TEXTBOX-"),))],
 
+    [sg.VPush()],
     [sg.pin(sg.Button("Back", k="-BACK BUTTON-", visible=False, use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.VPush()],
     [sg.VPush()],
@@ -83,8 +85,8 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
         background_color=bgColor,
         p=((5,5),(12,5)),
     )
-    layout1 = [[feild], [sg.Button("Exit", k="-EXIT GAME-")]]
-    window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True)
+    layout1 = [[feild], [sg.Button("Exit", k="-EXIT GAME-", use_ttk_buttons=True, focus=False, s=(10,1))]]
+    window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True, use_default_focus=False)
     while True:
         event, values = window1.read(timeout=1)
         if event == "-EXIT GAME-":
@@ -193,6 +195,7 @@ while True:
     if event2 == "-OPTIONS BUTTON-":
         window2["-PLAY BUTTON-"].update(visible=False)
         window2.find_element("-OPTIONS BUTTON-").Update(visible=False)
+        window2.find_element("-CREDITS BUTTON-").Update(visible=False)
         window2.find_element("-EXIT BUTTON-").Update(visible=False)
         window2.find_element("-COLOR TEXT-").Update(visible=True)
         window2.find_element("-COLOR PICKER TEXTBOX-").Update(visible=True)
@@ -221,6 +224,7 @@ while True:
         else: 
             window2.find_element("-PLAY BUTTON-").Update(visible=True)
             window2.find_element("-OPTIONS BUTTON-").Update(visible=True)
+            window2.find_element("-CREDITS BUTTON-").Update(visible=True)
             window2.find_element("-EXIT BUTTON-").Update(visible=True)
             window2.find_element("-COLOR TEXT-").Update(visible=False)
             window2.find_element("-COLOR PICKER TEXTBOX-").Update(visible=False)
