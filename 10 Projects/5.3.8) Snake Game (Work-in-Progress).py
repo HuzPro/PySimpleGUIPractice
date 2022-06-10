@@ -1,8 +1,23 @@
+from dis import dis
 from time import time
 import PySimpleGUI as sg
 from random import randint
 import numpy as np
 from colormap import rgb2hex, rgb2hls, hls2rgb
+import json
+
+def saveGameState():
+    saveFileName = "GameData"
+    path = 'path_to_dir{0}.json'.format(saveFileName)
+    data = {
+        "snakeSpeed": snakeSpeed,
+        "snakeBodyColor": snkBColor,
+        "snakeHeadColor": snkHColor,
+
+
+
+    }
+
 
 sg.theme("DarkGreen4")
 gameCredits = "Creative Director - ME\nProduction Director - ME\nArt Director - ME\nTechnical Director - ME\nSponsor - ME\nSupporters - ME, MYSELF and I"
@@ -54,6 +69,8 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
     fieldSize = 800
     cellNum = 20
     cellSize = fieldSize/cellNum
+    appleScore = 1
+    playerScore = 0
 
     #Snake
     snakeBody = [(10,10),(9,10),(8,10), (7,10)]
@@ -124,12 +141,21 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
             #DeathCheck
             if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:-1]:
                 break
-             
 
-            #feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C",) #drawing the background
-                
+            #DrawDaApple
             tl, br = positionToPixel(applePosition)
-            feild.DrawRectangle(   tl,         br  ,    "#E11916", line_width=0)
+            atl = tl
+            xhtl,yhtl = htl
+            xatl,yatl = atl
+            distancex = xhtl - xatl
+            distancey = yhtl - yatl
+            distancex = abs(distancex)
+            distancey = abs(distancey)
+            appleScore = round(((randint(1,10))/100) * distancex+(distancey/10))/10
+            playerScore += appleScore
+            print("Apple score: "+str(playerScore))
+            feild.DrawRectangle(tl, br, "#E11916", line_width=0)
+
             #DrawDaSnake
             #tail, body, head = 0, 0, 0
             for index, part in enumerate(snakeBody):
@@ -158,6 +184,9 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
                     color = snakeHeadColor
                     head = feild.DrawRectangle(tl, br, color, line_width=0)
                     htl = tl
+            
+            
+    #return snakeBody, direction, applePosition, tl, br, htl
                     
                     
                 
@@ -181,7 +210,7 @@ window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_defau
 #MenuVariables
 gameRunning = False
 snakeSpeed = 0.35
-randomNumber=0
+randomNumber = 0
 backgroundColor = "#212F3C"
 snkBColor = "#229954"
 snkHColor = "#0B5345"
