@@ -108,10 +108,10 @@ def makeGameWindow():
         graph_bottom_left=(0,0),
         graph_top_right=(fieldSize,fieldSize),
         background_color=bgColor,
-        p=((5,5),(12,5)),
+        p=((5,5),(0,5)),
     )
-    layout1 = [[feild], [sg.Button("Exit", k="-EXIT GAME-", use_ttk_buttons=True, focus=False, s=(10,1))]]
-    window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True, use_default_focus=False)
+    layout1 = [[sg.Text("Score: 0", font= "Courier", k="-SCORE-")],[feild], [sg.Button("Exit", k="-EXIT GAME-", use_ttk_buttons=True, focus=False, s=(10,1))]]
+    window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True, use_default_focus=False, element_justification="center")
     while True:
         event, values = window1.read(timeout=1)
         if event == "-EXIT GAME-":
@@ -176,8 +176,7 @@ def makeGameWindow():
                         elif stepcount >= 31:
                             appleScore = 1
                         playerScore += round(appleScore/(snakeSpeed+0.5))
-                        print(str(appleScore*snakeSpeed))
-                        print("Apple score: "+str(appleScore)+", Player score: "+str(playerScore))
+                        window1["-SCORE-"].update("Score: "+str(playerScore))
                         stepcount = 0
                 
                 if index == len(snakeBody)-1:                               #Tail
