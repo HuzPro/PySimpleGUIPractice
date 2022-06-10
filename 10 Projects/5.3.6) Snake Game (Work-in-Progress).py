@@ -5,7 +5,7 @@ import numpy as np
 from colormap import rgb2hex, rgb2hls, hls2rgb
 
 sg.theme("DarkGreen4")
-gameCredits = "Creative Director - ME HAHAHAHAHAHA\nProduction Director - ME HAHAHAHAHAHA\nArt Director - ME HAHAHAHAHAHA\nTechnical Director - ME HAHAHAHAHAHA\nSponsor - ME HAHAHAHAHAHA"
+gameCredits = "Creative Director - ME\nProduction Director - ME\nArt Director - ME\nTechnical Director - ME\nSponsor - ME\nSupporters - ME, MYSELF and I"
 menuLayout = [
     [sg.VPush()],
     [sg.VPush()],
@@ -14,7 +14,7 @@ menuLayout = [
     [sg.pin(sg.Button("Options", k="-OPTIONS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Credits", k="-CREDITS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
-    [sg.pin(sg.Text(gameCredits, visible=False, k="-CREDITS TEXT-"))],
+    [sg.pin(sg.Text(gameCredits, justification="center", visible=False, k="-CREDITS TEXT-"))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=35, orientation="h", enable_events=True, visible=False, size=(128,16)))],
 
@@ -176,7 +176,7 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
 
     
 
-window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,400), use_default_focus=False, element_justification="center",)
+window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)
 
 #MenuVariables
 gameRunning = False
@@ -194,15 +194,15 @@ while True:
     
     if event2 == "-OPTIONS BUTTON-":
         window2["-PLAY BUTTON-"].update(visible=False)
-        window2.find_element("-OPTIONS BUTTON-").Update(visible=False)
-        window2.find_element("-CREDITS BUTTON-").Update(visible=False)
-        window2.find_element("-EXIT BUTTON-").Update(visible=False)
-        window2.find_element("-COLOR TEXT-").Update(visible=True)
-        window2.find_element("-COLOR PICKER TEXTBOX-").Update(visible=True)
-        window2.find_element("-COLOR PICKER-").Update(visible=True)
-        window2.find_element("-SLIDER TEXT-").Update(visible=True)
-        window2.find_element("-SPEED SLIDER-").Update(visible=True)
-        window2.find_element("-BACK BUTTON-").Update(visible=True)
+        window2["-OPTIONS BUTTON-"].update(visible=False)
+        window2["-CREDITS BUTTON-"].update(visible=False)
+        window2["-EXIT BUTTON-"].update(visible=False)
+        window2["-COLOR TEXT-"].update(visible=True)
+        window2["-COLOR PICKER TEXTBOX-"].update(visible=True)
+        window2["-COLOR PICKER-"].update(visible=True)
+        window2["-SLIDER TEXT-"].update(visible=True)
+        window2["-SPEED SLIDER-"].update(visible=True)
+        window2["-BACK BUTTON-"].update(visible=True)
 
         while event2 != "-BACK BUTTON-":
             event2, values2 = window2.read()
@@ -222,16 +222,44 @@ while True:
                 window2["-COLOR PICKER-"].update(button_color=snkBColor)
 
         else: 
-            window2.find_element("-PLAY BUTTON-").Update(visible=True)
-            window2.find_element("-OPTIONS BUTTON-").Update(visible=True)
-            window2.find_element("-CREDITS BUTTON-").Update(visible=True)
-            window2.find_element("-EXIT BUTTON-").Update(visible=True)
-            window2.find_element("-COLOR TEXT-").Update(visible=False)
-            window2.find_element("-COLOR PICKER TEXTBOX-").Update(visible=False)
-            window2.find_element("-COLOR PICKER-").Update(visible=False)
-            window2.find_element("-SLIDER TEXT-").Update(visible=False)
-            window2.find_element("-SPEED SLIDER-").Update(visible=False)
-            window2.find_element("-BACK BUTTON-").Update(visible=False)
+            window2["-PLAY BUTTON-"].update(visible=True)
+            window2["-OPTIONS BUTTON-"].update(visible=True)
+            window2["-CREDITS BUTTON-"].update(visible=True)
+            window2["-EXIT BUTTON-"].update(visible=True)
+            window2["-COLOR TEXT-"].update(visible=False)
+            window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
+            window2["-COLOR PICKER-"].update(visible=False)
+            window2["-SLIDER TEXT-"].update(visible=False)
+            window2["-SPEED SLIDER-"].update(visible=False)
+            window2["-BACK BUTTON-"].update(visible=False)
+        
+    if event2 == "-CREDITS BUTTON-":
+        window2["-PLAY BUTTON-"].update(visible=False)
+        window2["-OPTIONS BUTTON-"].update(visible=False)
+        window2["-CREDITS BUTTON-"].update(visible=False)
+        window2["-EXIT BUTTON-"].update(visible=False)
+        window2["-COLOR TEXT-"].update(visible=False)
+        window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
+        window2["-COLOR PICKER-"].update(visible=False)
+        window2["-SLIDER TEXT-"].update(visible=False)
+        window2["-SPEED SLIDER-"].update(visible=False)
+        window2["-CREDITS TEXT-"].update(visible=True)
+        window2["-BACK BUTTON-"].update(visible=True)
+
+        while event2 != "-BACK BUTTON-":
+            event2, values2 = window2.read()
+        else: 
+            window2["-PLAY BUTTON-"].update(visible=True)
+            window2["-OPTIONS BUTTON-"].update(visible=True)
+            window2["-CREDITS BUTTON-"].update(visible=True)
+            window2["-EXIT BUTTON-"].update(visible=True)
+            window2["-COLOR TEXT-"].update(visible=False)
+            window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
+            window2["-COLOR PICKER-"].update(visible=False)
+            window2["-SLIDER TEXT-"].update(visible=False)
+            window2["-SPEED SLIDER-"].update(visible=False)
+            window2["-CREDITS TEXT-"].update(visible=False)
+            window2["-BACK BUTTON-"].update(visible=False)
             
     
     if event2 == "-PLAY BUTTON-" and not gameRunning:
