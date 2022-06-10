@@ -1,5 +1,6 @@
 from dis import dis
 from time import time
+from turtle import bgcolor
 import PySimpleGUI as sg
 from random import randint
 import numpy as np
@@ -11,12 +12,16 @@ def saveGameState():
     path = 'path_to_dir{0}.json'.format(saveFileName)
     data = {
         "snakeSpeed": snakeSpeed,
-        "snakeBodyColor": snkBColor,
-        "snakeHeadColor": snkHColor,
+        "snakeBodyColor": snakeBodyColor,
+        "snakeHeadColor": snakeHeadColor,
 
 
 
     }
+
+global  highScore, testHS
+testHS = ""
+highScore = []
 
 
 sg.theme("DarkGreen4")
@@ -28,7 +33,9 @@ menuLayout = [
     [sg.pin(sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"), use_ttk_buttons=True, focus=False, size=(16,1)))],            #Menu
     [sg.pin(sg.Button("Options", k="-OPTIONS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Credits", k="-CREDITS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
+    [sg.pin(sg.Button("High Scores", k="-HIGHSCORES BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
+    [sg.pin(sg.Text(text = "", justification="center", visible=False, k="-HIGHSCORES TEXT-"))],
     [sg.pin(sg.Text(gameCredits, justification="center", visible=False, k="-CREDITS TEXT-"))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=35, orientation="h", enable_events=True, visible=False, size=(128,16)))],
@@ -62,7 +69,7 @@ def darken_color(r, g, b, factor=0.3):
 
 
 
-def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
+def makeGameWindow():
     startTime = time()
 
     #Game constants
@@ -71,6 +78,7 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
     cellSize = fieldSize/cellNum
     appleScore = 1
     playerScore = 0
+    stepcount = 0
 
     #Snake
     snakeBody = [(10,10),(9,10),(8,10), (7,10)]
@@ -124,11 +132,13 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
 
         timeSinceStart = time() - startTime
         if timeSinceStart >= snakeSpeed:
+            scoreFlag = False
             startTime = time()
             #SnakeEatsApple
             if snakeBody[0] == applePosition:
                 applePosition = newApplePosition()
                 appleEaten = True
+                scoreFlag = True
 
             #SnakePositionUpdate
             newHead = (snakeBody[0][0]+ direction[0], snakeBody[0][1]+ direction[1])
@@ -140,36 +150,42 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
 
             #DeathCheck
             if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:-1]:
+                highScore.append(str(playerScore))
                 break
 
             #DrawDaApple
             tl, br = positionToPixel(applePosition)
-            atl = tl
-            xhtl,yhtl = htl
-            xatl,yatl = atl
-            distancex = xhtl - xatl
-            distancey = yhtl - yatl
-            distancex = abs(distancex)
-            distancey = abs(distancey)
-            appleScore = round(((randint(1,10))/100) * distancex+(distancey/10))/10
-            playerScore += appleScore
-            print("Apple score: "+str(playerScore))
             feild.DrawRectangle(tl, br, "#E11916", line_width=0)
 
             #DrawDaSnake
-            #tail, body, head = 0, 0, 0
             for index, part in enumerate(snakeBody):
-                #if tail != 0: feild.delete_figure(tail)
-                #if body != 0: feild.delete_figure(body)
-                #if head != 0: feild.delete_figure(head)
                 tl, br = positionToPixel(part)
-                if index == 0:htl=tl
+                if index == 0:
+                    stepcount = stepcount + 1
+
+                    htl=tl
+                    if scoreFlag:
+                        if stepcount <= 5 and stepcount >= 1:
+                            appleScore = 20
+                        elif stepcount >= 6 and stepcount <= 10:
+                            appleScore = 15
+                        elif stepcount >= 11 and stepcount <= 20:
+                            appleScore = 10
+                        elif stepcount >= 21 and stepcount <= 30:
+                            appleScore = 5
+                        elif stepcount >= 31:
+                            appleScore = 1
+                        playerScore += round(appleScore/(snakeSpeed+0.5))
+                        print(str(appleScore*snakeSpeed))
+                        print("Apple score: "+str(appleScore)+", Player score: "+str(playerScore))
+                        stepcount = 0
+                
                 if index == len(snakeBody)-1:                               #Tail
                     if htl == tl:
                         color = snakeHeadColor
                     elif htl != tl:
                         color = bgColor
-                    tail = feild.DrawRectangle(tl, br, color,line_width=0)
+                    feild.DrawRectangle(tl, br, color,line_width=0)
 
                     #xDelete , yDelete = 0, 0                                        #Comment out this part and uncomment out the line above this to make the code work normally. This is a work in progress alternate.
                     #xDelete , yDelete = tl
@@ -178,11 +194,11 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
                     
                 elif index != -1 and index != 0:                            #Body Except Head and Tail
                     color = snakeBodyColor
-                    body = feild.DrawRectangle(tl, br, color, line_width=0)
+                    feild.DrawRectangle(tl, br, color, line_width=0)
                     
                 elif index == 0:                                            #Head
                     color = snakeHeadColor
-                    head = feild.DrawRectangle(tl, br, color, line_width=0)
+                    feild.DrawRectangle(tl, br, color, line_width=0)
                     htl = tl
             
             
@@ -207,13 +223,23 @@ def makeGameWindow(snakeSpeed, bgColor, snakeBodyColor,snakeHeadColor):
 
 window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)
 
+#GameVariables
+global appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor 
+global applePosition
+appleScore = 1
+playerScore = 0
+stepcount = 0
+highScore = [15, 17]
+
+
 #MenuVariables
 gameRunning = False
 snakeSpeed = 0.35
 randomNumber = 0
-backgroundColor = "#212F3C"
-snkBColor = "#229954"
-snkHColor = "#0B5345"
+bgColor = "#212F3C"
+snakeBodyColor = "#229954"
+snakeHeadColor = "#0B5345"
+
 
 while True:
 
@@ -225,6 +251,7 @@ while True:
         window2["-PLAY BUTTON-"].update(visible=False)
         window2["-OPTIONS BUTTON-"].update(visible=False)
         window2["-CREDITS BUTTON-"].update(visible=False)
+        window2["-HIGHSCORES BUTTON-"].update(visible=False)
         window2["-EXIT BUTTON-"].update(visible=False)
         window2["-COLOR TEXT-"].update(visible=True)
         window2["-COLOR PICKER TEXTBOX-"].update(visible=True)
@@ -240,20 +267,21 @@ while True:
             if event2 == "-COLOR PICKER TEXTBOX-":
                 
                 factor = 0.75
-                snkBColor = values2["-COLOR PICKER TEXTBOX-"]
+                snakeBodyColor = values2["-COLOR PICKER TEXTBOX-"]
                 rr, gg, bb = hex_to_rgb(values2["-COLOR PICKER TEXTBOX-"])
                 h, l, s = rgb2hls(rr / 255.0, gg / 255.0, bb / 255.0)
                 l = max(min(l * factor, 1.0), 0.0)
                 r, g, b = hls2rgb(h, l, s)
                 tempHex = rgb2hex(int(r * 255), int(g * 255), int(b * 255))
                 print(str(tempHex))
-                snkHColor = tempHex
-                window2["-COLOR PICKER-"].update(button_color=snkBColor)
+                snakeHeadColor = tempHex
+                window2["-COLOR PICKER-"].update(button_color=snakeBodyColor)
 
         else: 
             window2["-PLAY BUTTON-"].update(visible=True)
             window2["-OPTIONS BUTTON-"].update(visible=True)
             window2["-CREDITS BUTTON-"].update(visible=True)
+            window2["-HIGHSCORES BUTTON-"].update(visible=True)
             window2["-EXIT BUTTON-"].update(visible=True)
             window2["-COLOR TEXT-"].update(visible=False)
             window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
@@ -266,6 +294,7 @@ while True:
         window2["-PLAY BUTTON-"].update(visible=False)
         window2["-OPTIONS BUTTON-"].update(visible=False)
         window2["-CREDITS BUTTON-"].update(visible=False)
+        window2["-HIGHSCORES BUTTON-"].update(visible=False)
         window2["-EXIT BUTTON-"].update(visible=False)
         window2["-COLOR TEXT-"].update(visible=False)
         window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
@@ -281,6 +310,7 @@ while True:
             window2["-PLAY BUTTON-"].update(visible=True)
             window2["-OPTIONS BUTTON-"].update(visible=True)
             window2["-CREDITS BUTTON-"].update(visible=True)
+            window2["-HIGHSCORES BUTTON-"].update(visible=True)
             window2["-EXIT BUTTON-"].update(visible=True)
             window2["-COLOR TEXT-"].update(visible=False)
             window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
@@ -290,11 +320,46 @@ while True:
             window2["-CREDITS TEXT-"].update(visible=False)
             window2["-BACK BUTTON-"].update(visible=False)
             
+    if event2 == "-HIGHSCORES BUTTON-":
+        window2["-PLAY BUTTON-"].update(visible=False)
+        window2["-OPTIONS BUTTON-"].update(visible=False)
+        window2["-CREDITS BUTTON-"].update(visible=False)
+        window2["-HIGHSCORES BUTTON-"].update(visible=False)
+        window2["-EXIT BUTTON-"].update(visible=False)
+        window2["-COLOR TEXT-"].update(visible=False)
+        window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
+        window2["-COLOR PICKER-"].update(visible=False)
+        window2["-SLIDER TEXT-"].update(visible=False)
+        window2["-SPEED SLIDER-"].update(visible=False)
+        window2["-CREDITS TEXT-"].update(visible=False)
+        window2["-HIGHSCORES TEXT-"].update(visible=True)
+        textHS = ""
+        for score in highScore: textHS +=str(score)+"\n"
+        window2["-HIGHSCORES TEXT-"].update(testHS)
+        window2["-BACK BUTTON-"].update(visible=True)
+
+        while event2 != "-BACK BUTTON-":
+            event2, values2 = window2.read()
+        else:
+            window2["-PLAY BUTTON-"].update(visible=True)
+            window2["-OPTIONS BUTTON-"].update(visible=True)
+            window2["-CREDITS BUTTON-"].update(visible=True)
+            window2["-HIGHSCORES BUTTON-"].update(visible=True)
+            window2["-EXIT BUTTON-"].update(visible=True)
+            window2["-COLOR TEXT-"].update(visible=False)
+            window2["-COLOR PICKER TEXTBOX-"].update(visible=False)
+            window2["-COLOR PICKER-"].update(visible=False)
+            window2["-SLIDER TEXT-"].update(visible=False)
+            window2["-SPEED SLIDER-"].update(visible=False)
+            window2["-CREDITS TEXT-"].update(visible=False)
+            window2["-HIGHSCORES TEXT-"].update(visible=False)
+            window2["-BACK BUTTON-"].update(visible=False)
+            
     
     if event2 == "-PLAY BUTTON-" and not gameRunning:
         window2.hide()
         gameRunning = True
-        gameWindow = makeGameWindow(snakeSpeed, backgroundColor,snkBColor,snkHColor)
+        gameWindow = makeGameWindow()
         if gameWindow:
             gameWindow.close()
         window2.un_hide()
