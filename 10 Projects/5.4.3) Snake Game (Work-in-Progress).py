@@ -1,25 +1,66 @@
 from dis import dis
+from fileinput import filename
 from time import time
 from turtle import bgcolor
 import PySimpleGUI as sg
 from random import randint
 import numpy as np
 from colormap import rgb2hex, rgb2hls, hls2rgb
+import pathlib
 import json
+from os import path
 
-def saveGameState():
-    saveFileName = "GameData"
-    path = 'path_to_dir{0}.json'.format(saveFileName)
-    data = {
+global  highScore, testHS, appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor
+global applePosition
+global saveGameData
+saveGameData = {}
+snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
+direction = snakeDirection["right"]
+
+def saveGameDataUpdate(saveGameData):
+    saveGameData = {
         "snakeSpeed": snakeSpeed,
         "snakeBodyColor": snakeBodyColor,
         "snakeHeadColor": snakeHeadColor,
-
-
+        "AppleScore": appleScore,
+        "PlayerScore": playerScore,
+        "StepCount": stepcount,
+        "Direction": direction,
+        "BackgroundColor":bgColor,
+        #"HighScore":highScore
 
     }
 
-global  highScore, testHS
+def saveGameState():
+    saveFileName = "GameData.json"
+    filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
+    saveGameDataUpdate(saveGameData)
+
+    if path.isfile(filepath) is True:
+        aFile = open(saveFileName, "r")
+        jsonobject = json.load(aFile)
+        aFile.close()
+        if jsonobject["snakeSpeed"] != snakeSpeed: jsonobject["snakeSpeed"] = snakeSpeed
+        if jsonobject["snakeBodyColor"] != snakeBodyColor: jsonobject["snakeBodyColor"] = snakeBodyColor
+        if jsonobject["snakeHeadColor"] != snakeHeadColor: jsonobject["snakeHeadColor"] = snakeHeadColor
+        if jsonobject["AppleScore"] != appleScore: jsonobject["AppleScore"] = appleScore
+        if jsonobject["PlayerScore"] != playerScore: jsonobject["PlayerScore"] = playerScore
+        if jsonobject["StepCount"] != stepcount: jsonobject["StepCount"] = stepcount
+        if jsonobject["Direction"] != direction: jsonobject["Direction"] = direction
+        if jsonobject["BackgroundColor"] != bgColor: jsonobject["BackgroundColor"] = bgColor
+
+        aFile = open(filename,"w")
+        json.dump(jsonobject, aFile)
+        aFile.close()
+
+        
+    else:
+        with open(filepath, "w") as sgd:
+            json.dump(saveGameData, sgd)
+    
+    print(filepath)
+
+
 testHS = ""
 highScore = []
 
@@ -76,7 +117,7 @@ def makeGameWindow():
     fieldSize = 800
     cellNum = 20
     cellSize = fieldSize/cellNum
-    appleScore = 1
+    appleScore = 0 
     playerScore = 0
     stepcount = 0
 
@@ -84,6 +125,7 @@ def makeGameWindow():
     snakeBody = [(10,10),(9,10),(8,10), (7,10)]
     snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
     direction = snakeDirection["right"]
+    
 
     #Game Functions
     def positionToPixel(cell):
@@ -223,9 +265,7 @@ def makeGameWindow():
 window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)
 
 #GameVariables
-global appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor 
-global applePosition
-appleScore = 1
+appleScore = 0
 playerScore = 0
 stepcount = 0
 highScore = [15, 17]
@@ -364,8 +404,8 @@ while True:
         window2.un_hide()
         gameRunning = False
         
-        
-        
+print()
 
 
+saveGameState()
 window2.close()
