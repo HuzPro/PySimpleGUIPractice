@@ -28,13 +28,13 @@ def saveGameDataUpdate(saveGameData):
         "Direction": direction,
         "BackgroundColor":bgColor,
         #"HighScore":highScore
-
     }
+    return saveGameData
 
 def saveGameState():
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
-    saveGameDataUpdate(saveGameData)
+    saveGameData = saveGameDataUpdate(saveGameData)
 
     if path.isfile(filepath) is True:
         aFile = open(saveFileName, "r")
@@ -49,16 +49,15 @@ def saveGameState():
         if jsonobject["Direction"] != direction: jsonobject["Direction"] = direction
         if jsonobject["BackgroundColor"] != bgColor: jsonobject["BackgroundColor"] = bgColor
 
-        aFile = open(filename,"w")
+        aFile = open(filepath,"w")
         json.dump(jsonobject, aFile)
         aFile.close()
-
+        print("first condition "+filepath)
         
     else:
         with open(filepath, "w") as sgd:
             json.dump(saveGameData, sgd)
-    
-    print(filepath)
+        print("second condition "+filepath)
 
 
 testHS = ""
