@@ -27,7 +27,7 @@ def saveGameDataUpdate(saveGameData):
         "StepCount": stepcount,
         "Direction": direction,
         "BackgroundColor":bgColor,
-        #"HighScore":highScore
+        "HighScore":highScore
     }
     return saveGameData
 
@@ -242,7 +242,6 @@ while True:
             window2["-CREDITS TEXT-"].update(visible=False)
             window2["-HIGHSCORES TEXT-"].update(visible=False)
             window2["-BACK BUTTON-"].update(visible=False)
-            
     
     if event2 == "-PLAY BUTTON-" and not gameRunning:
         window2.hide()
