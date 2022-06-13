@@ -1,7 +1,6 @@
 from dis import dis
 from fileinput import filename
 from time import time
-from turtle import bgcolor
 import PySimpleGUI as sg
 from random import randint
 import numpy as np
@@ -11,8 +10,9 @@ import json
 from os import path
 
 global  highScore, testHS, appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor
-global applePosition
-global saveGameData
+global applePosition, saveGameData
+
+
 saveGameData = {}
 snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
 direction = snakeDirection["right"]
@@ -32,6 +32,7 @@ def saveGameDataUpdate(saveGameData):
     return saveGameData
 
 def saveGameState():
+    global saveGameData
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
     saveGameData = saveGameDataUpdate(saveGameData)
@@ -75,7 +76,7 @@ menuLayout = [
     [sg.pin(sg.Button("Credits", k="-CREDITS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("High Scores", k="-HIGHSCORES BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
-    [sg.pin(sg.Text(text = "", justification="center", visible=False, k="-HIGHSCORES TEXT-"))],
+    [sg.pin(sg.Listbox([highScore], default_values=["No HighScores Yet :("], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, highlight_text_color=None, highlight_background_color=None, no_scrollbar=True, s=(16,10), k="-HIGHSCORES TEXT-", visible=False))],
     [sg.pin(sg.Text(gameCredits, justification="center", visible=False, k="-CREDITS TEXT-"))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=35, orientation="h", enable_events=True, visible=False, size=(128,16)))],
@@ -86,7 +87,6 @@ menuLayout = [
 
     [sg.VPush()],
     [sg.pin(sg.Button("Back", k="-BACK BUTTON-", visible=False, use_ttk_buttons=True, focus=False, size=(16,1)))],
-    [sg.VPush()],
     [sg.VPush()],
     [sg.VPush()],
     [sg.VPush()],
@@ -107,158 +107,6 @@ def adjust_color_lightness(r, g, b, factor=0.3):
 def darken_color(r, g, b, factor=0.3):
     return adjust_color_lightness(r, g, b, 1 - factor)
 
-
-
-def makeGameWindow():
-    startTime = time()
-
-    #Game constants
-    fieldSize = 800
-    cellNum = 20
-    cellSize = fieldSize/cellNum
-    appleScore = 0 
-    playerScore = 0
-    stepcount = 0
-
-    #Snake
-    snakeBody = [(10,10),(9,10),(8,10), (7,10)]
-    snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
-    direction = snakeDirection["right"]
-    
-
-    #Game Functions
-    def positionToPixel(cell):
-        tl = cell[0]*cellSize, cell[1]*cellSize
-        br = tl[0]+cellSize, tl[1]+cellSize
-        return tl, br
-
-    def newApplePosition():
-        applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
-        while applePosition in snakeBody:
-            applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
-        return applePosition
-
-    #Apple
-    global applePosition
-    applePosition = newApplePosition()
-    appleEaten = False
-
-    #GameMap
-    feild = sg.Graph(
-        canvas_size=(fieldSize,fieldSize),
-        graph_bottom_left=(0,0),
-        graph_top_right=(fieldSize,fieldSize),
-        background_color=bgColor,
-        p=((5,5),(0,5)),
-    )
-    layout1 = [[sg.Text("Score: 0", font= "Courier", k="-SCORE-")],[feild], [sg.Button("Exit", k="-EXIT GAME-", use_ttk_buttons=True, focus=False, s=(10,1))]]
-    window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True, use_default_focus=False, element_justification="center")
-    while True:
-        event, values = window1.read(timeout=1)
-        if event == "-EXIT GAME-":
-            break
-            
-        if event == "Left:37":
-            if direction != snakeDirection["right"]:
-                direction = snakeDirection["left"]
-        if event == "Up:38":
-            if direction != snakeDirection["down"]:
-                direction = snakeDirection["up"]
-        if event == "Right:39":
-            if direction != snakeDirection["left"]:
-                direction = snakeDirection["right"]
-        if event == "Down:40":
-            if direction != snakeDirection["up"]:
-                direction = snakeDirection["down"]
-
-        timeSinceStart = time() - startTime
-        if timeSinceStart >= snakeSpeed:
-            scoreFlag = False
-            startTime = time()
-            #SnakeEatsApple
-            if snakeBody[0] == applePosition:
-                applePosition = newApplePosition()
-                appleEaten = True
-                scoreFlag = True
-
-            #SnakePositionUpdate
-            newHead = (snakeBody[0][0]+ direction[0], snakeBody[0][1]+ direction[1])
-            snakeBody.insert(0, newHead)
-            
-            if not appleEaten:
-                snakeBody.pop()
-            appleEaten = False
-
-            #DeathCheck
-            if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:-1]:
-                highScore.append(str(playerScore))
-                break
-
-            #DrawDaApple
-            tl, br = positionToPixel(applePosition)
-            feild.DrawRectangle(tl, br, "#E11916", line_width=0)
-
-            #DrawDaSnake
-            for index, part in enumerate(snakeBody):
-                tl, br = positionToPixel(part)
-                if index == 0:
-                    stepcount = stepcount + 1
-
-                    htl=tl
-                    if scoreFlag:
-                        if stepcount <= 5 and stepcount >= 1:
-                            appleScore = 20
-                        elif stepcount >= 6 and stepcount <= 10:
-                            appleScore = 15
-                        elif stepcount >= 11 and stepcount <= 20:
-                            appleScore = 10
-                        elif stepcount >= 21 and stepcount <= 30:
-                            appleScore = 5
-                        elif stepcount >= 31:
-                            appleScore = 1
-                        playerScore += round(appleScore/(snakeSpeed+0.5))
-                        window1["-SCORE-"].update("Score: "+str(playerScore))
-                        stepcount = 0
-                
-                if index == len(snakeBody)-1:                               #Tail
-                    if htl == tl:
-                        color = snakeHeadColor
-                    elif htl != tl:
-                        color = bgColor
-                    feild.DrawRectangle(tl, br, color,line_width=0)
-
-                    #xDelete , yDelete = 0, 0                                        #Comment out this part and uncomment out the line above this to make the code work normally. This is a work in progress alternate.
-                    #xDelete , yDelete = tl
-                    #xDelete, yDelete = xDelete+(cellSize/2), yDelete-(cellSize/2)
-                    #figure = feild.get_figures_at_location((xDelete,yDelete))
-                    
-                elif index != -1 and index != 0:                            #Body Except Head and Tail
-                    color = snakeBodyColor
-                    feild.DrawRectangle(tl, br, color, line_width=0)
-                    
-                elif index == 0:                                            #Head
-                    color = snakeHeadColor
-                    feild.DrawRectangle(tl, br, color, line_width=0)
-                    htl = tl
-            
-            
-    #return snakeBody, direction, applePosition, tl, br, htl
-                    
-                    
-                
-
-    #feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C")
-    feild.draw_text("GAME OVER", color="red", font="Courier 50", location=(fieldSize/2,fieldSize/2))
-    
-    event, values = window1.read()
-    if event == "-EXIT GAME-":
-        window1.close()
-        if window1:
-            window1.close()
-        else: pass
-        
-    return window1
-
     
 
 window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)
@@ -267,7 +115,7 @@ window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_defau
 appleScore = 0
 playerScore = 0
 stepcount = 0
-highScore = [15, 17]
+highScore = []
 
 
 #MenuVariables
@@ -371,9 +219,11 @@ while True:
         window2["-SPEED SLIDER-"].update(visible=False)
         window2["-CREDITS TEXT-"].update(visible=False)
         window2["-HIGHSCORES TEXT-"].update(visible=True)
-        textHS = ""
-        for score in highScore: textHS +=str(score)+"\n"
-        window2["-HIGHSCORES TEXT-"].update(testHS)
+        highscores = []
+        if highScore:
+            for num, score in enumerate(highScore.sort(reverse=True)):
+                highscores.append(str(str(num+1)+") "+str(score))+'\n')
+            window2["-HIGHSCORES TEXT-"].update(highscores)
         window2["-BACK BUTTON-"].update(visible=True)
 
         while event2 != "-BACK BUTTON-":
@@ -397,9 +247,152 @@ while True:
     if event2 == "-PLAY BUTTON-" and not gameRunning:
         window2.hide()
         gameRunning = True
-        gameWindow = makeGameWindow()
-        if gameWindow:
-            gameWindow.close()
+        startTime = time()
+
+        #Game constants
+        fieldSize = 800
+        cellNum = 20
+        cellSize = fieldSize/cellNum
+        appleScore = 0 
+        playerScore = 0
+        stepcount = 0
+
+        #Snake
+        snakeBody = [(10,10),(9,10),(8,10), (7,10)]
+        snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
+        direction = snakeDirection["right"]
+
+
+        #Game Functions
+        def positionToPixel(cell):
+            tl = cell[0]*cellSize, cell[1]*cellSize
+            br = tl[0]+cellSize, tl[1]+cellSize
+            return tl, br
+
+        def newApplePosition():
+            applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
+            while applePosition in snakeBody:
+                applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
+            return applePosition
+
+        #Apple
+        applePosition = newApplePosition()
+        appleEaten = False
+
+        #GameMap
+        feild = sg.Graph(
+            canvas_size=(fieldSize,fieldSize),
+            graph_bottom_left=(0,0),
+            graph_top_right=(fieldSize,fieldSize),
+            background_color=bgColor,
+            p=((5,5),(0,5)),
+        )
+        layout1 = [[sg.Text("Score: 0", font= "Courier", k="-SCORE-")],[feild], [sg.Button("Exit", k="-EXIT GAME-", use_ttk_buttons=True, focus=False, s=(10,1))]]
+        window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True, use_default_focus=False, element_justification="center")
+        while True:
+            event, values = window1.read(timeout=1)
+            if event == "-EXIT GAME-":
+                break
+
+            if event == "Left:37":
+                if direction != snakeDirection["right"]:
+                    direction = snakeDirection["left"]
+            if event == "Up:38":
+                if direction != snakeDirection["down"]:
+                    direction = snakeDirection["up"]
+            if event == "Right:39":
+                if direction != snakeDirection["left"]:
+                    direction = snakeDirection["right"]
+            if event == "Down:40":
+                if direction != snakeDirection["up"]:
+                    direction = snakeDirection["down"]
+
+            timeSinceStart = time() - startTime
+            if timeSinceStart >= snakeSpeed:
+                scoreFlag = False
+                startTime = time()
+                #SnakeEatsApple
+                if snakeBody[0] == applePosition:
+                    applePosition = newApplePosition()
+                    appleEaten = True
+                    scoreFlag = True
+
+                #SnakePositionUpdate
+                newHead = (snakeBody[0][0]+ direction[0], snakeBody[0][1]+ direction[1])
+                snakeBody.insert(0, newHead)
+
+                if not appleEaten:
+                    snakeBody.pop()
+                appleEaten = False
+
+                #DeathCheck
+                if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:-1]:
+                    highScore.append(str(playerScore))
+                    break
+
+                #DrawDaApple
+                tl, br = positionToPixel(applePosition)
+                feild.DrawRectangle(tl, br, "#E11916", line_width=0)
+
+                #DrawDaSnake
+                for index, part in enumerate(snakeBody):
+                    tl, br = positionToPixel(part)
+                    if index == 0:
+                        stepcount = stepcount + 1
+
+                        htl=tl
+                        if scoreFlag:
+                            if stepcount <= 5 and stepcount >= 1:
+                                appleScore = 20
+                            elif stepcount >= 6 and stepcount <= 10:
+                                appleScore = 15
+                            elif stepcount >= 11 and stepcount <= 20:
+                                appleScore = 10
+                            elif stepcount >= 21 and stepcount <= 30:
+                                appleScore = 5
+                            elif stepcount >= 31:
+                                appleScore = 1
+                            playerScore += round(appleScore/(snakeSpeed+0.5))
+                            window1["-SCORE-"].update("Score: "+str(playerScore))
+                            stepcount = 0
+
+                    if index == len(snakeBody)-1:                               #Tail
+                        if htl == tl:
+                            color = snakeHeadColor
+                        elif htl != tl:
+                            color = bgColor
+                        feild.DrawRectangle(tl, br, color,line_width=0)
+
+                        #xDelete , yDelete = 0, 0                                        #Comment out this part and uncomment out the line above this to make the code work normally. This is a work in progress alternate.
+                        #xDelete , yDelete = tl
+                        #xDelete, yDelete = xDelete+(cellSize/2), yDelete-(cellSize/2)
+                        #figure = feild.get_figures_at_location((xDelete,yDelete))
+
+                    elif index != -1 and index != 0:                            #Body Except Head and Tail
+                        color = snakeBodyColor
+                        feild.DrawRectangle(tl, br, color, line_width=0)
+
+                    elif index == 0:                                            #Head
+                        color = snakeHeadColor
+                        feild.DrawRectangle(tl, br, color, line_width=0)
+                        htl = tl
+
+
+        #return snakeBody, direction, applePosition, tl, br, htl
+
+
+
+
+        #feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C")
+        feild.draw_text("GAME OVER", color="red", font="Courier 50", location=(fieldSize/2,fieldSize/2))
+
+        event, values = window1.read()
+        if event == "-EXIT GAME-":
+            window1.close()
+            if window1:
+                window1.close()
+            else: pass
+
         window2.un_hide()
         gameRunning = False
         
