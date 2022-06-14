@@ -1,12 +1,15 @@
 from dis import dis
 from fileinput import filename
+from pickle import EMPTY_DICT
 from time import time
+from turtle import bgcolor
 import PySimpleGUI as sg
 from random import randint
 import numpy as np
 from colormap import rgb2hex, rgb2hls, hls2rgb
 import pathlib
 import json
+import os
 from os import path
 
 global  highScore, testHS, appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor
@@ -16,6 +19,36 @@ global applePosition, saveGameData
 saveGameData = {}
 snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
 direction = snakeDirection["right"]
+
+saveCheck = False
+
+def readGameState():
+    global saveGameData
+    saveFileName = "GameData.json"
+    filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
+    if path.isfile(filepath) is True and os.stat(filepath).st_size >= 3:
+        aFile = open(saveFileName, "r")
+        saveGameData = json.load(aFile)
+        aFile.close()
+        snakeSpeed = saveGameData["snakeSpeed"]
+        snakeBodyColor = saveGameData["snakeBodyColor"]
+        snakeHeadColor = saveGameData["snakeHeadColor"]
+        appleScore = saveGameData["AppleScore"]
+        playerScore = saveGameData["PlayerScore"]
+        stepcount = saveGameData["StepCount"]
+        direction = saveGameData["Direction"]
+        bgColor = saveGameData["BackgroundColor"]
+        highScore = []
+        if saveGameData["HighScore"] != []:
+            for score in saveGameData["HighScore"]:
+                highScore.append(score)
+        saveCheck = True
+        print("its working\nList: "+str(highScore))
+    return snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck
+snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck = readGameState()
+
+print(snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck)
+
 
 def saveGameDataUpdate(saveGameData):
     saveGameData = {
@@ -31,13 +64,16 @@ def saveGameDataUpdate(saveGameData):
     }
     return saveGameData
 
+
+
+
 def saveGameState():
     global saveGameData
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
     saveGameData = saveGameDataUpdate(saveGameData)
 
-    if path.isfile(filepath) is True:
+    if path.isfile(filepath) is True and os.stat(filepath).st_size >= 3:
         aFile = open(saveFileName, "r")
         jsonobject = json.load(aFile)
         aFile.close()
@@ -49,7 +85,7 @@ def saveGameState():
         if jsonobject["StepCount"] != stepcount: jsonobject["StepCount"] = stepcount
         if jsonobject["Direction"] != direction: jsonobject["Direction"] = direction
         if jsonobject["BackgroundColor"] != bgColor: jsonobject["BackgroundColor"] = bgColor
-
+    
         aFile = open(filepath,"w")
         json.dump(jsonobject, aFile)
         aFile.close()
@@ -61,8 +97,9 @@ def saveGameState():
         print("second condition "+filepath)
 
 
+
 testHS = ""
-highScore = []
+
 
 
 sg.theme("DarkGreen4")
@@ -79,11 +116,11 @@ menuLayout = [
     [sg.pin(sg.Listbox([highScore], default_values=["No HighScores Yet :("], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, highlight_text_color=None, highlight_background_color=None, no_scrollbar=True, s=(16,10), k="-HIGHSCORES TEXT-", visible=False))],
     [sg.pin(sg.Text(gameCredits, justification="center", visible=False, k="-CREDITS TEXT-"))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
-    [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=35, orientation="h", enable_events=True, visible=False, size=(128,16)))],
+    [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=snakeSpeed, orientation="h", enable_events=True, visible=False, size=(128,16)))],
 
     [sg.pin(sg.Text("Snake Color:", visible=False, k="-COLOR TEXT-"))]+                                                                             #Snake Color
-    [sg.pin(sg.Input(default_text="#229954", size=(8,1),visible=False, enable_events=True,k="-COLOR PICKER TEXTBOX-",))]+
-    [sg.pin(sg.ColorChooserButton("",s=(4,1),button_color="#229954", visible = False, k="-COLOR PICKER-", target=("-COLOR PICKER TEXTBOX-"),))],
+    [sg.pin(sg.Input(default_text=str(snakeBodyColor), size=(8,1),visible=False, enable_events=True,k="-COLOR PICKER TEXTBOX-",))]+
+    [sg.pin(sg.ColorChooserButton("",s=(4,1),button_color=snakeBodyColor, visible = False, k="-COLOR PICKER-", target=("-COLOR PICKER TEXTBOX-"),))],
 
     [sg.VPush()],
     [sg.pin(sg.Button("Back", k="-BACK BUTTON-", visible=False, use_ttk_buttons=True, focus=False, size=(16,1)))],
@@ -92,6 +129,11 @@ menuLayout = [
     [sg.VPush()],
     [sg.VPush()],
 ]
+
+
+
+
+
 
 def hex_to_rgb(hex):
      hex = hex.lstrip('#')
@@ -111,20 +153,26 @@ def darken_color(r, g, b, factor=0.3):
 
 window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)
 
-#GameVariables
-appleScore = 0
-playerScore = 0
-stepcount = 0
-highScore = []
+snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck
 
 
-#MenuVariables
-gameRunning = False
-snakeSpeed = 0.35
 randomNumber = 0
-bgColor = "#212F3C"
-snakeBodyColor = "#229954"
-snakeHeadColor = "#0B5345"
+gameRunning = False
+#GameVariables
+if not saveCheck:
+    appleScore = 0
+    playerScore = 0
+    stepcount = 0
+    highScore = []
+
+
+    #MenuVariables
+    
+    snakeSpeed = 0.35
+    bgColor = "#212F3C"
+    snakeBodyColor = "#229954"
+    snakeHeadColor = "#0B5345"
+
 
 
 while True:
@@ -220,8 +268,9 @@ while True:
         window2["-CREDITS TEXT-"].update(visible=False)
         window2["-HIGHSCORES TEXT-"].update(visible=True)
         highscores = []
+        print(highScore)
         if highScore:
-            for num, score in enumerate(highScore.sort(reverse=True)):
+            for num, score in enumerate(list(highScore).sort(reverse=True)):
                 highscores.append(str(str(num+1)+") "+str(score))+'\n')
             window2["-HIGHSCORES TEXT-"].update(highscores)
         window2["-BACK BUTTON-"].update(visible=True)
@@ -252,9 +301,6 @@ while True:
         fieldSize = 800
         cellNum = 20
         cellSize = fieldSize/cellNum
-        appleScore = 0 
-        playerScore = 0
-        stepcount = 0
 
         #Snake
         snakeBody = [(10,10),(9,10),(8,10), (7,10)]
