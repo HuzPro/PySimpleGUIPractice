@@ -15,7 +15,7 @@ from os import path
 global  highScore, testHS, appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor
 global applePosition, saveGameData
 
-
+highScore = []
 saveGameData = {}
 snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
 direction = snakeDirection["right"]
@@ -24,6 +24,7 @@ saveCheck = False
 
 def readGameState():
     global saveGameData
+    global snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
     if path.isfile(filepath) is True and os.stat(filepath).st_size >= 3:
@@ -44,10 +45,10 @@ def readGameState():
                 highScore.append(score)
         saveCheck = True
         print("its working\nList: "+str(highScore))
-    return snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck
-snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck = readGameState()
+    return  saveCheck, highScore
+saveCheck, highScore = readGameState()
 
-print(snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, saveCheck)
+print(snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, str(list(highScore)), saveCheck)
 
 
 def saveGameDataUpdate(saveGameData):
@@ -59,8 +60,8 @@ def saveGameDataUpdate(saveGameData):
         "PlayerScore": playerScore,
         "StepCount": stepcount,
         "Direction": direction,
-        "BackgroundColor":bgColor,
-        "HighScore":highScore
+        "BackgroundColor": bgColor,
+        "HighScore": highScore
     }
     return saveGameData
 
@@ -85,6 +86,7 @@ def saveGameState():
         if jsonobject["StepCount"] != stepcount: jsonobject["StepCount"] = stepcount
         if jsonobject["Direction"] != direction: jsonobject["Direction"] = direction
         if jsonobject["BackgroundColor"] != bgColor: jsonobject["BackgroundColor"] = bgColor
+        if jsonobject["HighScore"] != highScore: jsonobject["HighScore"] = highScore
     
         aFile = open(filepath,"w")
         json.dump(jsonobject, aFile)
@@ -96,9 +98,14 @@ def saveGameState():
             json.dump(saveGameData, sgd)
         print("second condition "+filepath)
 
+highscores = []
+print(highScore)
 
-
-testHS = ""
+if highScore:
+    num = 1
+    for score in highScore.sort(reverse=True):
+        highscores.append(str(str(num)+") "+str(score))+'\n')
+        num+=1
 
 
 
@@ -267,12 +274,7 @@ while True:
         window2["-SPEED SLIDER-"].update(visible=False)
         window2["-CREDITS TEXT-"].update(visible=False)
         window2["-HIGHSCORES TEXT-"].update(visible=True)
-        highscores = []
-        print(highScore)
-        if highScore:
-            for num, score in enumerate(list(highScore).sort(reverse=True)):
-                highscores.append(str(str(num+1)+") "+str(score))+'\n')
-            window2["-HIGHSCORES TEXT-"].update(highscores)
+        window2["-HIGHSCORES TEXT-"].update(highscores)
         window2["-BACK BUTTON-"].update(visible=True)
 
         while event2 != "-BACK BUTTON-":
