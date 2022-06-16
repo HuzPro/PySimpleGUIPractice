@@ -8,18 +8,19 @@ import os
 from os import path
 
 
-global  highScore, testHS, appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor, sliderValue, applePosition, saveGameData
+global  highScore, appleScore, playerScore, stepcount, snakeBody, direction, snakeSpeed, bgColor, snakeBodyColor, snakeHeadColor, sliderValue, applePosition, saveGameData, saveCheck
 
-
-saveGameData = {}
+snakeBodyColor=snakeHeadColor=bgColor=""
+snakeBody=applePosition=highScore=[]
+saveGameData= {}
 snakeDirection = {"left":(-1,0),"right":(1,0),"up":(0,1),"down":(0,-1)}
 direction = snakeDirection["right"]
-
+snakeSpeed=stepcount=sliderValue=appleScore=playerScore=0
 saveCheck = False
 
 def readGameState():
     global saveGameData
-    global snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue
+    global snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue, saveCheck
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
     if path.isfile(filepath) is True and os.stat(filepath).st_size >= 3:
@@ -40,8 +41,8 @@ def readGameState():
                 highScore.append(score)
         sliderValue = saveGameData["sliderValue"]
         saveCheck = True
-    return  saveCheck
-saveCheck = readGameState()
+    return  saveCheck, snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue
+saveCheck, snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue = readGameState()
 
 
 def saveGameDataUpdate(saveGameData):
@@ -64,6 +65,7 @@ def saveGameDataUpdate(saveGameData):
 
 def saveGameState():
     global saveGameData
+    global snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue, saveCheck
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
     saveGameData = saveGameDataUpdate(saveGameData)
@@ -96,6 +98,7 @@ def saveGameState():
 
 sg.theme("DarkGreen4")
 gameCredits = "Creative Director - ME\nProduction Director - ME\nArt Director - ME\nTechnical Director - ME\nSponsor - ME\nSupporters - ME, MYSELF and I"
+sliderValue
 menuLayout = [
     [sg.VPush()],
     [sg.VPush()],
@@ -105,7 +108,7 @@ menuLayout = [
     [sg.pin(sg.Button("Credits", k="-CREDITS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("High Scores", k="-HIGHSCORES BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
-    [sg.pin(sg.Listbox([highScore], default_values=["No HighScores Yet :("], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, highlight_text_color=None, highlight_background_color=None, no_scrollbar=True, s=(16,10), k="-HIGHSCORES TEXT-", visible=False))],
+    [sg.pin(sg.Listbox("",default_values=["No HighScores Yet :("], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, highlight_text_color=None, highlight_background_color=None, no_scrollbar=True, s=(16,10), k="-HIGHSCORES TEXT-", visible=False))],
     [sg.pin(sg.Text(gameCredits, justification="center", visible=False, k="-CREDITS TEXT-"))],
     [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=sliderValue, orientation="h", enable_events=True, visible=False, size=(128,16)))],
