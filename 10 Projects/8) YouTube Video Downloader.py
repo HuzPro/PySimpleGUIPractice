@@ -1,5 +1,7 @@
+from pathlib import Path
 import PySimpleGUI as sg
 from pytube import YouTube
+import os
 
 def progressCheck(stream, chunk, bytesRemaining):
     progressAmount = 100 - round(bytesRemaining / stream.filesize * 100)
@@ -10,6 +12,8 @@ def progressCheck(stream, chunk, bytesRemaining):
 def onCompleteCheck(stream, filePath):
     window["-DOWNLOADPROGBAR-"].update(0)
     window["-DOWNLOADPROGBAR-"].update(bar_color = "green")
+    sg.popup("\n The video has been successfully downloaded! \n", title ="Download Successful!", auto_close=True, auto_close_duration=5)
+
 
 sg.theme("DarkRed1")
 
@@ -68,11 +72,46 @@ while True:
         window["-AUDIOSIZE-"].update(f'Size: {round(video_object.streams.get_audio_only().filesize / 1048576, 1)} MBs')
 
     if event == "-HIGH-":
-        video_object.streams.get_by_resolution("720p").download()
+        sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
+        temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP4", "*.mp4"),))
+        saveFilePathAndFile = Path(temppath)
+        saveFilePath = os.path.dirname(saveFilePathAndFile)
+        saveFileName = os.path.basename(saveFilePathAndFile) + ".mp4"
+        if saveFileName == "..mp4":
+            pass
+        elif saveFileName == "default.mp4.mp4":
+            video_object.streams.get_by_resolution("720p").download(output_path=saveFilePath)
+        else:
+            print(saveFileName)
+            video_object.streams.get_by_resolution("720p").download(output_path=saveFilePath, filename=saveFileName)
+
     if event == "-LOW-":
-        video_object.streams.get_by_resolution("360p").download()
+        sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
+        temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP4", "*.mp4"),))
+        saveFilePathAndFile = Path(temppath)
+        saveFilePath = os.path.dirname(saveFilePathAndFile)
+        saveFileName = os.path.basename(saveFilePathAndFile) + ".mp4"
+        if saveFileName == "..mp4":
+            pass
+        elif saveFileName == "default.mp4.mp4":
+            video_object.streams.get_by_resolution("360p").download(output_path=saveFilePath)
+        else:
+            print(saveFileName)
+            video_object.streams.get_by_resolution("360p").download(output_path=saveFilePath, filename=saveFileName)
+        
     if event == "-AUDIO-":
-        video_object.streams.get_audio_only().download()
+        sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
+        temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP3", "*.mp3"),))
+        saveFilePathAndFile = Path(temppath)
+        saveFilePath = os.path.dirname(saveFilePathAndFile)
+        saveFileName = os.path.basename(saveFilePathAndFile) + ".mp3"
+        if saveFileName == "..mp4":
+            pass
+        elif saveFileName == "default.mp3.mp3":
+            video_object.streams.get_audio_only().download(output_path=saveFilePath)
+        else:
+            print(saveFileName)
+            video_object.streams.get_audio_only().download(output_path=saveFilePath, filename=saveFileName)
 
 
 window.close()
