@@ -4,6 +4,9 @@ from pytube import YouTube
 import os
 
 ######################## NEED TO ADD HQ(1080p VIDEOS AND MERGE THEM WITH AUDIO USING PFFMPEG ########################
+# https://stackoverflow.com/questions/56973205/how-to-combine-the-video-and-audio-files-in-ffmpeg-python
+# https://stackoverflow.com/questions/62894380/download-full-hd-youtube-video-in-python
+
 
 def progressCheck(stream, chunk, bytesRemaining):
     progressAmount = 100 - round(bytesRemaining / stream.filesize * 100)
