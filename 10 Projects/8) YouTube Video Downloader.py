@@ -3,6 +3,8 @@ import PySimpleGUI as sg
 from pytube import YouTube
 import os
 
+######################## NEED TO ADD HQ(1080p VIDEOS AND MERGE THEM WITH AUDIO USING PFFMPEG ########################
+
 def progressCheck(stream, chunk, bytesRemaining):
     progressAmount = 100 - round(bytesRemaining / stream.filesize * 100)
     window["-DOWNLOADPROGBAR-"].update(bar_color = "red")
