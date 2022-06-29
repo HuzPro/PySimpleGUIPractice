@@ -1,7 +1,11 @@
 from pathlib import Path
+from re import T
 import PySimpleGUI as sg
 from pytube import YouTube
 import os
+import ffmpeg
+import subprocess
+
 
 ######################## NEED TO ADD HQ(1080p VIDEOS AND MERGE THEM WITH AUDIO USING PFFMPEG ########################
 # https://stackoverflow.com/questions/56973205/how-to-combine-the-video-and-audio-files-in-ffmpeg-python
@@ -32,8 +36,10 @@ infoSection = [
 ]
 
 downloadSection = [
-    [sg.Frame("High Quality (.mp4)", [[sg.Button("Download", k="-HIGH-"), sg.Text("", k="-HIGHRES-"), sg.Text("", k="-HIGHSIZE-")]])],
-    [sg.Frame("Low Quality (.mp4)", [[sg.Button("Download", k="-LOW-"), sg.Text("", k="-LOWRES-"), sg.Text("", k="-LOWSIZE-")]])],
+    [sg.Frame("Highest Quality (.mp4)", [[sg.Button("Download", k="-HIGHEST-"), sg.Text("", k="-HIGHESTRES-"), sg.Text("", k="-HIGHESTSIZE-"), sg.Text("", k="-HIGHESTFPS-")]])],
+    [sg.Frame("High Quality (.mp4)", [[sg.Button("Download", k="-HIGH-"), sg.Text("", k="-HIGHRES-"), sg.Text("", k="-HIGHSIZE-"), sg.Text("", k="-HIGHFPS-")]])],
+    [sg.Frame("Medium Quality (.mp4)", [[sg.Button("Download", k="-MED-"), sg.Text("", k="-MEDRES-"), sg.Text("", k="-MEDSIZE-"), sg.Text("", k="-MEDFPS-")]])],
+    [sg.Frame("Low Quality (.mp4)", [[sg.Button("Download", k="-LOW-"), sg.Text("", k="-LOWRES-"), sg.Text("", k="-LOWSIZE-"), sg.Text("", k="-LOWFPS-")]])],
     [sg.Frame("Audio (.mp3)", [[sg.Button("Download", k="-AUDIO-"), sg.Text("", k="-AUDIOSIZE-")]])],
     [sg.VPush()],
     [sg.Progress(100, orientation="h", bar_color="red", s=(10, 30), p=((10,10),(0,10)), k="-DOWNLOADPROGBAR-", expand_x=True)],
@@ -70,53 +76,160 @@ while True:
         window["-DESCRIPTION-"].update(video_object.description)
 
         #Download
-        window["-HIGHSIZE-"].update(f'Size: {round(video_object.streams.get_by_resolution("720p").filesize / 1048576, 1)} MBs')
-        window["-HIGHRES-"].update(f'Resolution: {video_object.streams.get_by_resolution("720p").resolution}')
+        #Highest Quality
+        window["-HIGHESTSIZE-"].update(f'Size: {round(video_object.streams.filter(adaptive=True)[0].filesize / 1048576, 1)} MBs')
+        window["-HIGHESTRES-"].update(f'Resolution: {video_object.streams.filter(adaptive=True)[0].resolution}')
+        window["-HIGHESTFPS-"].update(f'Fps: {video_object.streams.filter(adaptive=True)[0].fps}')
+        #High Quality
+        window["-HIGHSIZE-"].update(f'Size: {round(video_object.streams.filter(adaptive=True, resolution="1080p")[0].filesize / 1048576, 1)} MBs')
+        window["-HIGHRES-"].update(f'Resolution: {video_object.streams.filter(adaptive=True, resolution="1080p")[0].resolution}')
+        window["-HIGHFPS-"].update(f'Fps: {video_object.streams.filter(adaptive=True, resolution="1080p")[0].fps}')
+        #Medium Quality
+        window["-MEDSIZE-"].update(f'Size: {round(video_object.streams.get_by_resolution("720p").filesize / 1048576, 1)} MBs')
+        window["-MEDRES-"].update(f'Resolution: {video_object.streams.get_by_resolution("720p").resolution}')
+        window["-MEDFPS-"].update(f'Fps: {video_object.streams.get_by_resolution("720p").fps}')
+        #Low Quality
         window["-LOWSIZE-"].update(f'Size: {round(video_object.streams.get_by_resolution("360p").filesize / 1048576, 1)} MBs')
         window["-LOWRES-"].update(f'Resolution: {video_object.streams.get_by_resolution("360p").resolution}')
+        window["-LOWFPS-"].update(f'Fps: {video_object.streams.get_by_resolution("360p").fps}')
+        #Audio Only
         window["-AUDIOSIZE-"].update(f'Size: {round(video_object.streams.get_audio_only().filesize / 1048576, 1)} MBs')
+
+
+
+    if event == "-HIGHEST-":
+        sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
+        temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP4", "*.mp4"),))
+        saveFilePathAndFile = Path(temppath)
+        saveFilePath = os.path.dirname(saveFilePathAndFile)
+        saveFileName = os.path.basename(saveFilePathAndFile)
+        
+        if saveFileName == ".mp4":
+            pass
+        elif saveFileName == "default.mp4":
+            
+            videoFile = saveFilePath+"\\"+str(video_object.title)+"1.mp4"
+            audioFile = saveFilePath+"\\"+str(video_object.title)+"1.mp3"
+            outputFile = saveFilePath+"\\"+str(video_object.title)+".mp4"
+
+            for i, video_stream in enumerate(video_object.streams.filter(adaptive=True)):
+                if i == 0 and video_stream:
+                    highestQualityVideo = video_stream
+                    break
+            highestQualityVideo.download(output_path=saveFilePath, filename=video_object.title+"1.mp4")
+
+            for i, audio_stream in enumerate(video_object.streams.filter(adaptive=True, only_audio=True)):
+                if i == 1 and audio_stream:
+                    highestQualityAudio = audio_stream
+            highestQualityAudio.download(output_path=saveFilePath, filename=video_object.title+"1.mp3")
+
+            subprocess.run(f'ffmpeg -i "{videoFile}" -i "{audioFile}" -c copy "{outputFile}"')
+            os.remove(f"{videoFile}")
+            os.remove(f"{audioFile}")
+
+        else:
+
+            videoFile = saveFilePath+"\\"+str(saveFileName)+"1.mp4"
+            audioFile = saveFilePath+"\\"+str(saveFileName)+"1.mp3"
+            outputFile = saveFilePath+"\\"+str(saveFileName)+".mp4"
+
+            for i, video_stream in enumerate(video_object.streams.filter(adaptive=True)):
+                if i == 0 and video_stream:
+                    highestQualityVideo = video_stream
+                    break
+            highestQualityVideo.download(output_path=saveFilePath, filename=saveFileName+"1.mp4")
+
+            for i, audio_stream in enumerate(video_object.streams.filter(adaptive=True, only_audio=True)):
+                if i == 1 and audio_stream:
+                    highestQualityAudio = audio_stream
+            highestQualityAudio.download(output_path=saveFilePath, filename=saveFileName+"1.mp3")
+
+            subprocess.run(f'ffmpeg -i "{videoFile}" -i "{audioFile}" -c copy "{outputFile}"')
+            os.remove(f"{videoFile}")
+            os.remove(f"{audioFile}")
 
     if event == "-HIGH-":
         sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
         temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP4", "*.mp4"),))
         saveFilePathAndFile = Path(temppath)
         saveFilePath = os.path.dirname(saveFilePathAndFile)
-        saveFileName = os.path.basename(saveFilePathAndFile) + ".mp4"
-        if saveFileName == "..mp4":
+        saveFileName = os.path.basename(saveFilePathAndFile)
+        
+        if saveFileName == ".mp4":
             pass
-        elif saveFileName == "default.mp4.mp4":
-            video_object.streams.get_by_resolution("720p").download(output_path=saveFilePath)
+        elif saveFileName == "default.mp4":
+            
+            videoFile = saveFilePath+"\\"+str(video_object.title)+"1.mp4"
+            audioFile = saveFilePath+"\\"+str(video_object.title)+"1.mp3"
+            outputFile = saveFilePath+"\\"+str(video_object.title)+".mp4"
+
+            for i, video_stream in enumerate(video_object.streams.filter(adaptive=True, resolution="1080p")):
+                if i == 0 and video_stream:
+                    highQualityVideo = video_stream
+                    break
+            highQualityVideo.download(output_path=saveFilePath, filename=video_object.title+"1.mp4")
+
+            for i, audio_stream in enumerate(video_object.streams.filter(adaptive=True, only_audio=True)):
+                if i == 1 and audio_stream:
+                    highQualityAudio = audio_stream
+            highQualityAudio.download(output_path=saveFilePath, filename=video_object.title+"1.mp3")
+
+            subprocess.run(f'ffmpeg -i "{videoFile}" -i "{audioFile}" -c copy "{outputFile}"')
+            os.remove(f"{videoFile}")
+            os.remove(f"{audioFile}")
+
         else:
-            print(saveFileName)
-            video_object.streams.get_by_resolution("720p").download(output_path=saveFilePath, filename=saveFileName)
+            videoFile = saveFilePath+"\\"+str(saveFileName)+"1.mp4"
+            audioFile = saveFilePath+"\\"+str(saveFileName)+"1.mp3"
+            outputFile = saveFilePath+"\\"+str(saveFileName)+".mp4"
+
+            for i, video_stream in enumerate(video_object.streams.filter(adaptive=True)):
+                if i == 0 and video_stream:
+                    highQualityVideo = video_stream
+                    break
+            highQualityVideo.download(output_path=saveFilePath, filename=saveFileName+"1.mp4")
+
+            for i, audio_stream in enumerate(video_object.streams.filter(adaptive=True, only_audio=True)):
+                if i == 1 and audio_stream:
+                    highQualityAudio = audio_stream
+            highQualityAudio.download(output_path=saveFilePath, filename=saveFileName+"1.mp3")
+
+
+            subprocess.run(f'ffmpeg -i "{videoFile}" -i "{audioFile}" -c copy "{outputFile}"')
+            os.remove(f"{videoFile}")
+            os.remove(f"{audioFile}")
+
+
+    if event == "-MED-":
+        sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
+        temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP4", "*.mp4"),))
+        saveFilePathAndFile = Path(temppath)
+        saveFilePath = os.path.dirname(saveFilePathAndFile)
+        saveFileName = os.path.basename(saveFilePathAndFile)
+        if saveFileName == ".mp4": pass
+        elif saveFileName == "default.mp4": video_object.streams.get_by_resolution("720p").download(output_path=saveFilePath)
+        else: video_object.streams.get_by_resolution("720p").download(output_path=saveFilePath, filename=saveFileName)
+
 
     if event == "-LOW-":
         sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
         temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP4", "*.mp4"),))
         saveFilePathAndFile = Path(temppath)
         saveFilePath = os.path.dirname(saveFilePathAndFile)
-        saveFileName = os.path.basename(saveFilePathAndFile) + ".mp4"
-        if saveFileName == "..mp4":
-            pass
-        elif saveFileName == "default.mp4.mp4":
-            video_object.streams.get_by_resolution("360p").download(output_path=saveFilePath)
-        else:
-            print(saveFileName)
-            video_object.streams.get_by_resolution("360p").download(output_path=saveFilePath, filename=saveFileName)
+        saveFileName = os.path.basename(saveFilePathAndFile)
+        if saveFileName == ".mp4": pass
+        elif saveFileName == "default.mp4": video_object.streams.get_by_resolution("360p").download(output_path=saveFilePath)
+        else: video_object.streams.get_by_resolution("360p").download(output_path=saveFilePath, filename=saveFileName)
         
     if event == "-AUDIO-":
         sg.popup_ok("Type 'default' as file name to save the video with it's original file name")
         temppath = sg.popup_get_file("Select File Path", no_window=True, title="Save As", save_as=True, file_types=(("MP3", "*.mp3"),))
         saveFilePathAndFile = Path(temppath)
         saveFilePath = os.path.dirname(saveFilePathAndFile)
-        saveFileName = os.path.basename(saveFilePathAndFile) + ".mp3"
-        if saveFileName == "..mp4":
-            pass
-        elif saveFileName == "default.mp3.mp3":
-            video_object.streams.get_audio_only().download(output_path=saveFilePath)
-        else:
-            print(saveFileName)
-            video_object.streams.get_audio_only().download(output_path=saveFilePath, filename=saveFileName)
+        saveFileName = os.path.basename(saveFilePathAndFile)
+        if saveFileName == ".mp3": pass
+        elif saveFileName == "default.mp3": video_object.streams.get_audio_only().download(output_path=saveFilePath)
+        else: video_object.streams.get_audio_only().download(output_path=saveFilePath, filename=saveFileName)
 
 
 window.close()
