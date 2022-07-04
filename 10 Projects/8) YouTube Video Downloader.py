@@ -5,19 +5,18 @@ import os
 import ffmpeg
 import subprocess
 
-def progressCheck(stream, chunk, bytesRemaining):
+def progressCheck(stream, chunk, bytesRemaining):   #Updating progress bar
     progressAmount = 100 - round(bytesRemaining / stream.filesize * 100)
     window["-DOWNLOADPROGBAR-"].update(bar_color = "red")
     window["-DOWNLOADPROGBAR-"].update(progressAmount)
 
-def onCompleteCheck(stream, filePath):
+def onCompleteCheck(stream, filePath):              #When the video has been downloaded:
     window["-DOWNLOADPROGBAR-"].update(0)
     window["-DOWNLOADPROGBAR-"].update(bar_color = "green")
     sg.popup("\n The video has been successfully downloaded! \n", title ="Download Successful!", auto_close=True, auto_close_duration=5)
 
-sg.theme("DarkRed1")
-
-infoSection = [
+sg.theme("DarkRed1")    #Setting theme
+infoSection = [         #Info Section layout
     [sg.Text("Title:\t  "), sg.Text("", k="-TITLE-")],
     [sg.Text("Length:\t  "), sg.Text("", k="-LENGTH-")],
     [sg.Text("Views:\t  "), sg.Text("", k="-VIEWS-")],
@@ -25,7 +24,7 @@ infoSection = [
     [sg.Text("Description:"), ],
     [sg.Multiline("", k="-DESCRIPTION-", p=((2,5),5), s=(75,25), no_scrollbar=True, disabled=True,)]
 ]
-downloadSection = [
+downloadSection = [     #Download Section layout
     [sg.Frame("Highest Quality (.mp4)", [[sg.Button("Download", k="-HIGHEST-"), sg.Text("", k="-HIGHESTRES-"), sg.Text("", k="-HIGHESTSIZE-"), sg.Text("", k="-HIGHESTFPS-")]])],
     [sg.Frame("High Quality (.mp4)", [[sg.Button("Download", k="-HIGH-"), sg.Text("", k="-HIGHRES-"), sg.Text("", k="-HIGHSIZE-"), sg.Text("", k="-HIGHFPS-")]])],
     [sg.Frame("Medium Quality (.mp4)", [[sg.Button("Download", k="-MED-"), sg.Text("", k="-MEDRES-"), sg.Text("", k="-MEDSIZE-"), sg.Text("", k="-MEDFPS-")]])],
@@ -35,7 +34,7 @@ downloadSection = [
     [sg.Progress(100, orientation="h", bar_color="red", s=(10, 30), p=((10,10),(0,10)), k="-DOWNLOADPROGBAR-", expand_x=True)],
 ]
 
-main_layout = [
+main_layout = [         #Menu Section layout
     [sg.TabGroup([
         [sg.Tab("Info", infoSection), sg.Tab("Download", downloadSection)]
     ])
@@ -43,9 +42,9 @@ main_layout = [
 ]
 
 firstLayout = [[sg.Input("", s=(50,1), p=((10,10),(10,10)), k="-INPUT-", ), sg.Button("Submit", bind_return_key=True, k="-SUBMIT-")]]
-window = sg.Window("Youtube Video Downloader", firstLayout)
+window = sg.Window("Youtube Video Downloader", firstLayout)     #Making window
 
-while True:
+while True:     
     event, values = window.read()
     if event == sg.WIN_CLOSED:
         break
