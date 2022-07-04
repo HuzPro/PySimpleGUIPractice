@@ -18,7 +18,7 @@ direction = snakeDirection["right"]
 snakeSpeed=stepcount=sliderValue=appleScore=playerScore=0
 saveCheck = False
 
-def readGameState():
+def readGameState():    #To import data from a json file
     global saveGameData
     global snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue, saveCheck
     saveFileName = "GameData.json"
@@ -45,7 +45,7 @@ def readGameState():
 saveCheck, snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue = readGameState()
 
 
-def saveGameDataUpdate(saveGameData):
+def saveGameDataUpdate(saveGameData):   #To put all the needed game variables into a dictionary for json file
     saveGameData = {
         "snakeSpeed": snakeSpeed,
         "snakeBodyColor": snakeBodyColor,
@@ -63,14 +63,14 @@ def saveGameDataUpdate(saveGameData):
 
 
 
-def saveGameState():
+def saveGameState():    #To save data to a json file
     global saveGameData
     global snakeSpeed, snakeBodyColor, snakeHeadColor, appleScore, playerScore, stepcount, direction, bgColor, highScore, sliderValue, saveCheck
     saveFileName = "GameData.json"
     filepath = str(pathlib.Path(__file__).parent.resolve())+"\\"+saveFileName
     saveGameData = saveGameDataUpdate(saveGameData)
 
-    if path.isfile(filepath) is True and os.stat(filepath).st_size >= 3:
+    if path.isfile(filepath) is True and os.stat(filepath).st_size >= 3:    #If the file is there: open it and read it and write to it.
         aFile = open(saveFileName, "r")
         jsonobject = json.load(aFile)
         aFile.close()
@@ -88,7 +88,7 @@ def saveGameState():
         json.dump(jsonobject, aFile)
         aFile.close()
         
-    else:
+    else:   #If the file is not there: Make one and write to it.
         with open(filepath, "w") as sgd:
             json.dump(saveGameData, sgd)
 
@@ -96,24 +96,25 @@ def saveGameState():
 
 
 
-sg.theme("DarkGreen4")
-gameCredits = "Creative Director - ME\nProduction Director - ME\nArt Director - ME\nTechnical Director - ME\nSponsor - ME\nSupporters - ME, MYSELF and I"
-sliderValue
+sg.theme("DarkGreen4")  #Setting the window theme
+gameCredits = "Creative Director - ME\nProduction Director - ME\nArt Director - ME\nTechnical Director - ME\nSponsor - ME\nSupporters - ME, MYSELF and I"   #self explanitory...
+
+#Layout for the initial menu
 menuLayout = [
     [sg.VPush()],
     [sg.VPush()],
     [sg.VPush()],
-    [sg.pin(sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"), use_ttk_buttons=True, focus=False, size=(16,1)))],            #Menu
+    [sg.pin(sg.Button("Play", k="-PLAY BUTTON-", mouseover_colors=("black", "green"), use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Options", k="-OPTIONS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Credits", k="-CREDITS BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("High Scores", k="-HIGHSCORES BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Button("Exit", k="-EXIT BUTTON-", use_ttk_buttons=True, focus=False, size=(16,1)))],
     [sg.pin(sg.Listbox("",default_values=["No HighScores Yet :("], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, highlight_text_color=None, highlight_background_color=None, no_scrollbar=True, s=(16,10), k="-HIGHSCORES TEXT-", visible=False))],
     [sg.pin(sg.Text(gameCredits, justification="center", visible=False, k="-CREDITS TEXT-"))],
-    [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],                                                                            #Snake Speed
+    [sg.pin(sg.Text("Snake Speed:", visible=False, k="-SLIDER TEXT-"))],#Snake Speed
     [sg.pin(sg.Slider(k="-SPEED SLIDER-",range=(1,100), default_value=sliderValue, orientation="h", enable_events=True, visible=False, size=(128,16)))],
 
-    [sg.pin(sg.Text("Snake Color:", visible=False, k="-COLOR TEXT-"))]+                                                                             #Snake Color
+    [sg.pin(sg.Text("Snake Color:", visible=False, k="-COLOR TEXT-"))]+ #Snake Color
     [sg.pin(sg.Input(default_text=str(snakeBodyColor), size=(8,1),visible=False, enable_events=True,k="-COLOR PICKER TEXTBOX-",))]+
     [sg.pin(sg.ColorChooserButton("",s=(4,1),button_color=snakeBodyColor, visible = False, k="-COLOR PICKER-", target=("-COLOR PICKER TEXTBOX-"),))],
 
@@ -126,39 +127,35 @@ menuLayout = [
     [sg.VPush()],
 ]
 
-
-
-
-
-
-def hex_to_rgb(hex):
+#Functions for dimming the color chosen by user(body color) for the head color(darker than body color)
+def hex_to_rgb(hex):                                #Converting hex value to rgb
      hex = hex.lstrip('#')
      hlen = len(hex)
      return tuple(int(hex[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3))
 
-def adjust_color_lightness(r, g, b, factor=0.3):
+def adjust_color_lightness(r, g, b, factor=0.3):    #Function to lighten the color in rgb values
     h, l, s = rgb2hls(r / 255.0, g / 255.0, b / 255.0)
     l = max(min(l * factor, 1.0), 0.0)
     r, g, b = hls2rgb(h, l, s)
     return rgb2hex(int(r * 255), int(g * 255), int(b * 255))
 
-def darken_color(r, g, b, factor=0.3):
+def darken_color(r, g, b, factor=0.3):              #darken color in rgb value using adjust_color_lightness function
     return adjust_color_lightness(r, g, b, 1 - factor)
 
     
 
-window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)
+window2 = sg.Window("Menu", menuLayout, finalize=True, size=(280,350), use_default_focus=False, element_justification="center",)    #Creating the menu window
 
 randomNumber = 0
 gameRunning = False
-#GameVariables
-if not saveCheck:
+
+
+if not saveCheck:   #If there's no perviously saved file then initialize these variables:
     stepcount = 0
     highScore = []
 
 
     #MenuVariables
-    
     snakeSpeed = 0.35
     bgColor = "#212F3C"
     snakeBodyColor = "#229954"
@@ -166,13 +163,12 @@ if not saveCheck:
 
 
 
-while True:
-
+while True: #Loop for menu
     event2, values2 = window2.read()
     if event2 == sg.WIN_CLOSED or event2 == "-EXIT BUTTON-":
         break
     
-    if event2 == "-OPTIONS BUTTON-":
+    if event2 == "-OPTIONS BUTTON-":    #When the options button is pressed:
         window2["-PLAY BUTTON-"].update(visible=False)
         window2["-OPTIONS BUTTON-"].update(visible=False)
         window2["-CREDITS BUTTON-"].update(visible=False)
@@ -185,13 +181,12 @@ while True:
         window2["-SPEED SLIDER-"].update(visible=True)
         values2["-SPEED SLIDER-"]=sliderValue
         window2["-BACK BUTTON-"].update(visible=True)
-        while event2 != "-BACK BUTTON-":
+        while event2 != "-BACK BUTTON-":    #Running another loop till the back button is pressed. This loop runs the options menu. There's a loop because values need to be dynamically updated and window needs to be refreshed.
             event2, values2 = window2.read()
-            if event2 == "-SPEED SLIDER-":
+            if event2 == "-SPEED SLIDER-":              #When you change speed value:
                 sliderValue = values2["-SPEED SLIDER-"]
                 snakeSpeed = (100-((values2["-SPEED SLIDER-"])-1))/100
-            if event2 == "-COLOR PICKER TEXTBOX-":
-                
+            if event2 == "-COLOR PICKER TEXTBOX-":      #When you change color:
                 factor = 0.75
                 snakeBodyColor = values2["-COLOR PICKER TEXTBOX-"]
                 rr, gg, bb = hex_to_rgb(values2["-COLOR PICKER TEXTBOX-"])
@@ -201,8 +196,7 @@ while True:
                 tempHex = rgb2hex(int(r * 255), int(g * 255), int(b * 255))
                 snakeHeadColor = tempHex
                 window2["-COLOR PICKER-"].update(button_color=snakeBodyColor)
-
-        else: 
+        else:       #When the back button is pressed: Go back to the original menu
             window2["-PLAY BUTTON-"].update(visible=True)
             window2["-OPTIONS BUTTON-"].update(visible=True)
             window2["-CREDITS BUTTON-"].update(visible=True)
@@ -215,7 +209,7 @@ while True:
             window2["-SPEED SLIDER-"].update(visible=False)
             window2["-BACK BUTTON-"].update(visible=False)
         
-    if event2 == "-CREDITS BUTTON-":
+    if event2 == "-CREDITS BUTTON-":    #When credits button is pressed:
         window2["-PLAY BUTTON-"].update(visible=False)
         window2["-OPTIONS BUTTON-"].update(visible=False)
         window2["-CREDITS BUTTON-"].update(visible=False)
@@ -229,9 +223,9 @@ while True:
         window2["-CREDITS TEXT-"].update(visible=True)
         window2["-BACK BUTTON-"].update(visible=True)
 
-        while event2 != "-BACK BUTTON-":
+        while event2 != "-BACK BUTTON-":    #waiting for back button to be pressed:
             event2, values2 = window2.read()
-        else: 
+        else:   #Going back to previous menu
             window2["-PLAY BUTTON-"].update(visible=True)
             window2["-OPTIONS BUTTON-"].update(visible=True)
             window2["-CREDITS BUTTON-"].update(visible=True)
@@ -245,7 +239,7 @@ while True:
             window2["-CREDITS TEXT-"].update(visible=False)
             window2["-BACK BUTTON-"].update(visible=False)
             
-    if event2 == "-HIGHSCORES BUTTON-":
+    if event2 == "-HIGHSCORES BUTTON-": #When highscore button is pressed:
         window2["-PLAY BUTTON-"].update(visible=False)
         window2["-OPTIONS BUTTON-"].update(visible=False)
         window2["-CREDITS BUTTON-"].update(visible=False)
@@ -258,7 +252,7 @@ while True:
         window2["-SPEED SLIDER-"].update(visible=False)
         window2["-CREDITS TEXT-"].update(visible=False)
         window2["-HIGHSCORES TEXT-"].update(visible=True)
-        highscores = []
+        highscores = [] #putting highscores in proper variable and showing it
         highScore.sort(reverse=True)
         if highScore:
             for num, score in enumerate(highScore):
@@ -268,9 +262,9 @@ while True:
         window2["-CLEAR HIGHSCORES BUTTON-"].update(visible=True)
         window2["-BACK BUTTON-"].update(visible=True)
 
-        while event2 != "-BACK BUTTON-":
+        while event2 != "-BACK BUTTON-":    #Looping till back button is pressed:
             event2, values2 = window2.read()
-            if event2 == "-CLEAR HIGHSCORES BUTTON-":
+            if event2 == "-CLEAR HIGHSCORES BUTTON-":   #Waiting for clear button:
                 sg.popup_auto_close("All the highscores have been cleared!", auto_close_duration=3, no_titlebar=True, keep_on_top=True, grab_anywhere=True, button_type=0)
                 highScore = []
                 highscores = []
@@ -280,7 +274,7 @@ while True:
                         highscores.append(str(str(num+1)+") "+str(score))+'\n')
                         num+=1
                 window2["-HIGHSCORES TEXT-"].update(highscores)
-        else:
+        else:   #When back button is pressed:
             window2["-PLAY BUTTON-"].update(visible=True)
             window2["-OPTIONS BUTTON-"].update(visible=True)
             window2["-CREDITS BUTTON-"].update(visible=True)
@@ -296,7 +290,7 @@ while True:
             window2["-CLEAR HIGHSCORES BUTTON-"].update(visible=False)
             window2["-BACK BUTTON-"].update(visible=False)
     
-    if event2 == "-PLAY BUTTON-" and not gameRunning:
+    if event2 == "-PLAY BUTTON-" and not gameRunning:   #When play button is pressed, check if the game is already being played: If not: initialize variables and run the game
         prevApple=0
         delBody=[0,0,0,0]
         appleScore = 0
@@ -317,12 +311,12 @@ while True:
 
 
         #Game Functions
-        def positionToPixel(cell):
+        def positionToPixel(cell):  #Function to find top left and bottom right positions of a cell
             tl = cell[0]*cellSize, cell[1]*cellSize
             br = tl[0]+cellSize, tl[1]+cellSize
             return tl, br
 
-        def newApplePosition():
+        def newApplePosition():     #To find out the new apple position randomly
             applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
             while applePosition in snakeBody:
                 applePosition = randint(0, cellNum-1), randint(0, cellNum-1)
@@ -343,11 +337,11 @@ while True:
         )
         layout1 = [[sg.Text("Score: 0", font= "Courier", k="-SCORE-")],[feild], [sg.Button("Exit", k="-EXIT GAME-", use_ttk_buttons=True, focus=False, s=(10,1))]]
         window1 = sg.Window("Snake", layout1, return_keyboard_events=True, no_titlebar=True,grab_anywhere=True, finalize=True, use_default_focus=False, element_justification="center")
-        while True:
+        while True:     #Game Loop
             event, values = window1.read(timeout=snakeSpeed)
             if event == "-EXIT GAME-":
                 break
-
+            #To change direction of snake based off of arrow key presses
             if event == "Left:37":
                 if direction != snakeDirection["right"]:
                     direction = snakeDirection["left"]
@@ -380,15 +374,15 @@ while True:
                     snakeBody.pop()
                 appleEaten = False
 
-                #DeathCheck
+                #DeathCheck: Checking if snake died
                 if not 0 <= snakeBody[0][0] <= cellNum-1 or not 0 <= snakeBody[0][1] <= cellNum-1 or snakeBody[0] in snakeBody[1:]:
                     break
 
-                #DrawDaApple
+                #Drawing Da Apple
                 tl, br = positionToPixel(applePosition)
                 if prevApple != 0: feild.delete_figure(prevApple)
                 prevApple = feild.DrawRectangle(tl, br, "#E11916", line_width=0)
-                #DrawDaSnake
+                #Drawing Da Snake
                 for index, part in enumerate(snakeBody):
                     tl, br = positionToPixel(part)
                     if index == 0:
@@ -429,14 +423,7 @@ while True:
                         color = snakeHeadColor
                         delBody[index] = feild.DrawRectangle(tl, br, color, line_width=0)
                         htl = tl
-
         
-        #return snakeBody, direction, applePosition, tl, br, htl
-
-
-
-
-        #feild.DrawRectangle((0,0), (fieldSize, fieldSize), "#212F3C")
         feild.draw_text("GAME OVER", color="red", font="Courier 50", location=(fieldSize/2,fieldSize/2))
 
         event, values = window1.read()
@@ -447,11 +434,8 @@ while True:
             if window1:
                 window1.close()
             else: pass
-
         window2.un_hide()
         gameRunning = False
-        
 
-
-saveGameState()
-window2.close()
+saveGameState() #Saving game before closing windows.
+window2.close() #Closing windows.
